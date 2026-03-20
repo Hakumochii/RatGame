@@ -23,6 +23,7 @@ public class CharacterMovement : MonoBehaviour
     //looking
     public Vector2 look;
 	public bool cursorInputForLook = true;
+    public bool cursorLocked = true;
     private bool IsCurrentDeviceMouse
     {
         get
@@ -52,6 +53,8 @@ public class CharacterMovement : MonoBehaviour
     private float _cinemachineTargetYaw;
     private float _cinemachineTargetPitch;
     private const float _threshold = 0.01f;
+    [SerializeField] private float mouseSensitivity = 2.0f;
+    [SerializeField] private float controllerSensitivity = 100.0f;
 
     // direction and turning    
     private float _targetRotation = 0.0f;
@@ -98,18 +101,30 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    public void OnJump(InputValue value)
+    public void OnJump(InputAction.CallbackContext ctx)
     {
-        jump = value.isPressed;
+        jump = ctx.ReadValueAsButton();
     }
 
-    public void OnSprint(InputValue value)
+    public void OnSprint(InputAction.CallbackContext ctx)
     {
-        sprint = value.isPressed;
+        sprint = ctx.ReadValueAsButton();
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        SetCursorState(cursorLocked);
+    }
+
+    private void SetCursorState(bool newState)
+    {
+        Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
     }
 
     private void Update()
     {
+        Grounded = _controller.isGrounded;
+        JumpAndGravity();
         Move();
     }
 
@@ -236,8 +251,10 @@ public class CharacterMovement : MonoBehaviour
             //Don't multiply mouse input by Time.deltaTime;
             float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-            _cinemachineTargetYaw += look.x * deltaTimeMultiplier;
-            _cinemachineTargetPitch += look.y * deltaTimeMultiplier;
+            float sensitivity = IsCurrentDeviceMouse ? mouseSensitivity : controllerSensitivity;
+
+            _cinemachineTargetYaw += look.x * sensitivity * deltaTimeMultiplier;
+            _cinemachineTargetPitch += look.y * sensitivity * deltaTimeMultiplier;
         }
 
         // clamp our rotations so our values are limited 360 degrees
