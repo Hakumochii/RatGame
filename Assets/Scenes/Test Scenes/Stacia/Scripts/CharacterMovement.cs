@@ -11,10 +11,12 @@ public class CharacterMovement : MonoBehaviour
     private Vector2 move;    
     public bool analogMovement;
 	public bool jump;
-	public bool sprint;   
-    public bool climbing = false;        
+	public bool climb;   
+    public bool climbing;     
     [SerializeField] private float MoveSpeed = 2.0f; 
-    [SerializeField] private float SprintSpeed = 5.335f;
+    [SerializeField] private float ClimbSpeed = 3.5f;
+    [SerializeField] private float ClimbUpSpeed = 4.5f;
+    [SerializeField] private float ClimbSideSpeed = 3.0f;
     private float _speed;
      private float _animationBlend;
     //Acceleration and deceleration
@@ -77,6 +79,9 @@ public class CharacterMovement : MonoBehaviour
     private float _terminalVelocity = 53.0f;
 
     //climbing
+    public bool inClimbZone;
+    private Vector3 wallNormal;
+    public bool onEdge = false;
     
     
 
@@ -111,9 +116,9 @@ public class CharacterMovement : MonoBehaviour
         jump = ctx.ReadValueAsButton();
     }
 
-    public void OnSprint(InputAction.CallbackContext ctx)
+    public void OnClimb(InputAction.CallbackContext ctx)
     {
-        sprint = ctx.ReadValueAsButton();
+        climb = ctx.ReadValueAsButton();
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -128,9 +133,28 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, 1.2f))
+        {
+            if (hit.collider.CompareTag("Climbable"))
+            {
+                wallNormal = hit.normal;
+                inClimbZone = true;
+            }
+            else
+            {
+                inClimbZone = false;
+            }
+        }
+        else
+        {
+            inClimbZone = false;
+        }
         Grounded = _controller.isGrounded;
         JumpAndGravity();
         Move();
+
+
     }
 
     private void LateUpdate()
@@ -140,9 +164,14 @@ public class CharacterMovement : MonoBehaviour
 
     private void Move()
     {
+        // 0. Determine climbing state
+        climbing = climb && inClimbZone;
+
         // 1. Target speed
-        float targetSpeed = sprint ? SprintSpeed : MoveSpeed;
-        if (move == Vector2.zero) targetSpeed = 0f;
+        float targetSpeed = climbing ? ClimbSpeed : MoveSpeed;
+
+        if (move == Vector2.zero && !climbing) targetSpeed = 0f;
+        
 
         // 2. Current horizontal speed
         Vector3 horizontalVelocity = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z);
@@ -169,8 +198,8 @@ public class CharacterMovement : MonoBehaviour
         // 5. Input direction
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
-        // 6. Rotation (only if moving)
-        if (move != Vector2.zero && Grounded)
+        // 6. Rotation (only if moving and not climbing)
+        if (move != Vector2.zero && Grounded && !climbing)
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
                                 + _mainCamera.transform.eulerAngles.y;
@@ -191,7 +220,24 @@ public class CharacterMovement : MonoBehaviour
 
         if (climbing)
         {
-            velocity = Vector3.up * _speed; // ignore gravity
+            _verticalVelocity = 0f;
+
+            Vector3 wallUp = Vector3.up;
+            Vector3 wallRight = Vector3.Cross(wallNormal, wallUp).normalized;
+            wallUp = Vector3.Cross(wallRight, wallNormal).normalized;
+
+            // Apply different speeds
+            Vector3 climbMove =
+                wallUp * move.y * ClimbUpSpeed +
+                wallRight * move.x * ClimbSideSpeed;
+
+            velocity = climbMove;
+
+            // stick to wall
+            velocity += -wallNormal * 2f;
+            //rotate 
+            Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
         else
         {
@@ -202,6 +248,13 @@ public class CharacterMovement : MonoBehaviour
         // 8. Apply movement
         _controller.Move(velocity * Time.deltaTime);
 
+        /*if (onEdge)
+        {
+            if (jump)
+            {
+                
+            }
+        }*/
     }
 
     private void JumpAndGravity()
@@ -284,17 +337,21 @@ public class CharacterMovement : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Climbable"))
+        if (other.CompareTag("ClimbZone"))
         {
-            climbing = true;
+            inClimbZone = true;
+        }
+        if (other.CompareTag("Edge"))
+        {
+            onEdge = true;
         }
     }
 
     public void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Climbable"))
+        if (other.CompareTag("ClimbZone"))
         {
-            climbing = false;
+            inClimbZone = false;
         }
     }
 }

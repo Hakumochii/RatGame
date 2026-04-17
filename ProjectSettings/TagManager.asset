@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Climbable
+  - ClimbZone
   layers:
   - Default
   - TransparentFX

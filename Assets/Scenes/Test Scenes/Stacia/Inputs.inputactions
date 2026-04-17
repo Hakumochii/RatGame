@@ -16,7 +16,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Sprint",
+                    "name": "Climb",
                     "type": "PassThrough",
                     "id": "97a8b12e-961c-41a9-a769-cfc068a723f4",
                     "expectedControlType": "",
@@ -170,7 +170,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Sprint",
+                    "action": "Climb",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -181,7 +181,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
-                    "action": "Sprint",
+                    "action": "Climb",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
