@@ -81,7 +81,13 @@ public class CharacterMovement : MonoBehaviour
     //climbing
     public bool inClimbZone;
     private Vector3 wallNormal;
-    public bool onEdge = false;
+    [SerializeField] private float ledgeCheckDistance = 0.6f;
+    [SerializeField] private float ledgeHeight = 1.5f;
+    [SerializeField] private LayerMask ledgeLayer;
+
+    private bool isHanging = false;
+    private Vector3 ledgePoint;
+    private Vector3 ledgeNormal;
     
     
 
@@ -153,8 +159,6 @@ public class CharacterMovement : MonoBehaviour
         Grounded = _controller.isGrounded;
         JumpAndGravity();
         Move();
-
-
     }
 
     private void LateUpdate()
@@ -164,6 +168,21 @@ public class CharacterMovement : MonoBehaviour
 
     private void Move()
     {
+        CheckLedge();
+
+        if (isHanging)
+        {
+            _verticalVelocity = 0f;
+
+            // stay locked in place
+            if (move.y > 0.1f)
+            {
+                StartCoroutine(ClimbUpLedge());
+            }
+
+            return; // IMPORTANT: stop normal movement
+        }
+
         // 0. Determine climbing state
         climbing = climb && inClimbZone;
 
@@ -248,13 +267,6 @@ public class CharacterMovement : MonoBehaviour
         // 8. Apply movement
         _controller.Move(velocity * Time.deltaTime);
 
-        /*if (onEdge)
-        {
-            if (jump)
-            {
-                
-            }
-        }*/
     }
 
     private void JumpAndGravity()
@@ -335,15 +347,70 @@ public class CharacterMovement : MonoBehaviour
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 
+    private void CheckLedge()
+    {
+        if (Grounded || isHanging) return;
+
+        Vector3 origin = transform.position + Vector3.up * ledgeHeight;
+
+        // 1. Forward ray (detect wall)
+        if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
+        {
+            // 2. Ray from above downwards (check for top surface)
+            Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
+
+            if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
+            {
+                // Found a ledge!
+                ledgePoint = topHit.point;
+                ledgeNormal = wallHit.normal;
+
+                StartHang();
+            }
+        }
+    }
+
+    private void StartHang()
+    {
+        isHanging = true;
+        _verticalVelocity = 0f;
+
+        // snap player to ledge
+        Vector3 hangPos = ledgePoint - ledgeNormal * 0.5f;
+        hangPos.y -= 1.2f; // adjust for character height
+
+        transform.position = hangPos;
+
+        // face the wall
+        transform.rotation = Quaternion.LookRotation(-ledgeNormal);
+    }
+
+    private IEnumerator ClimbUpLedge()
+    {
+        isHanging = false;
+
+        Vector3 targetPos = ledgePoint + Vector3.up * 1.0f;
+
+        float time = 0f;
+        float duration = 0.3f;
+
+        Vector3 startPos = transform.position;
+
+        while (time < duration)
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPos;
+    }
+
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("ClimbZone"))
         {
             inClimbZone = true;
-        }
-        if (other.CompareTag("Edge"))
-        {
-            onEdge = true;
         }
     }
 
