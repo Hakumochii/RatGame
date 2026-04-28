@@ -12,11 +12,13 @@ public class CharacterMovement : MonoBehaviour
     public bool analogMovement;
 	public bool jump;
 	public bool climb;   
-    public bool climbing;     
+    public bool climbing;    
+    public bool drag;      
     [SerializeField] private float MoveSpeed = 2.0f; 
     [SerializeField] private float ClimbSpeed = 3.5f;
     [SerializeField] private float ClimbUpSpeed = 4.5f;
     [SerializeField] private float ClimbSideSpeed = 3.0f;
+    [SerializeField] private float DragSpeed = 3.5f;
     private float _speed;
      private float _animationBlend;
     //Acceleration and deceleration
@@ -88,6 +90,10 @@ public class CharacterMovement : MonoBehaviour
     private bool isHanging = false;
     private Vector3 ledgePoint;
     private Vector3 ledgeNormal;
+
+    //draging
+    public bool inDragZone;
+    private Vector3 boxNormal;
     
     
 
@@ -127,6 +133,11 @@ public class CharacterMovement : MonoBehaviour
         climb = ctx.ReadValueAsButton();
     }
 
+    public void OnDrag(InputAction.CallbackContext ctx)
+    {
+        drag = ctx.ReadValueAsButton();
+    }
+
     private void OnApplicationFocus(bool hasFocus)
     {
         SetCursorState(cursorLocked);
@@ -159,6 +170,7 @@ public class CharacterMovement : MonoBehaviour
         Grounded = _controller.isGrounded;
         JumpAndGravity();
         Move();
+        
     }
 
     private void LateUpdate()
@@ -183,7 +195,7 @@ public class CharacterMovement : MonoBehaviour
             return; // IMPORTANT: stop normal movement
         }
 
-        // 0. Determine climbing state
+        // 0. Determine climbing/dragging state
         climbing = climb && inClimbZone;
 
         // 1. Target speed
@@ -266,7 +278,6 @@ public class CharacterMovement : MonoBehaviour
 
         // 8. Apply movement
         _controller.Move(velocity * Time.deltaTime);
-
     }
 
     private void JumpAndGravity()
@@ -404,22 +415,6 @@ public class CharacterMovement : MonoBehaviour
         }
 
         transform.position = targetPos;
-    }
-
-    public void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("ClimbZone"))
-        {
-            inClimbZone = true;
-        }
-    }
-
-    public void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("ClimbZone"))
-        {
-            inClimbZone = false;
-        }
     }
 }
 
