@@ -245,8 +245,8 @@ public class CharacterMovement : MonoBehaviour
         // 5. Input direction
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
-        // 6. Rotation (only if moving, not climbing, not dragging)
-        if (move != Vector2.zero && Grounded && !climbing && !drag)
+        // 6. Rotation (only if moving and jumping, not climbing, not dragging)
+        if (move != Vector2.zero && !climbing && !drag)
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
                                 + _mainCamera.transform.eulerAngles.y;
@@ -403,12 +403,14 @@ public class CharacterMovement : MonoBehaviour
         if (Grounded || isHanging) return;
 
         Vector3 origin = transform.position + Vector3.up * ledgeHeight;
+        Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
 
         // 1. Forward ray (detect wall)
         if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
         {
             // 2. Ray from above downwards (check for top surface)
             Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
+            Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
 
             if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
             {
