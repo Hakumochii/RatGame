@@ -13,7 +13,9 @@ public class CharacterMovement : MonoBehaviour
 	public bool jump;
 	public bool climb;   
     public bool climbing;    
-    public bool drag;      
+    public bool drag;  
+    public bool dragForward;    
+    public bool dragBackward; 
     [SerializeField] private float MoveSpeed = 2.0f; 
     [SerializeField] private float ClimbSpeed = 3.5f;
     [SerializeField] private float ClimbUpSpeed = 4.5f;
@@ -94,6 +96,8 @@ public class CharacterMovement : MonoBehaviour
     //draging
     public bool inDragZone;
     private Vector3 boxNormal;
+    private Transform box;
+    private Vector3 boxEdgePoint;
     
     
 
@@ -162,10 +166,22 @@ public class CharacterMovement : MonoBehaviour
             {
                 inClimbZone = false;
             }
+            if (hit.collider.CompareTag("Dragable"))
+            {
+                box = hit.transform;
+                boxNormal = hit.normal;
+                inDragZone = true;
+                boxEdgePoint = hit.point;
+            }
+            else
+            {
+                inDragZone = false;
+            }
         }
         else
         {
             inClimbZone = false;
+            inDragZone = false;
         }
         Grounded = _controller.isGrounded;
         JumpAndGravity();
@@ -195,8 +211,8 @@ public class CharacterMovement : MonoBehaviour
             return; // IMPORTANT: stop normal movement
         }
 
-        // 0. Determine climbing/dragging state
-        climbing = climb && inClimbZone;
+        // 0. Determine climbing state
+        climbing = climb && inClimbZone; 
 
         // 1. Target speed
         float targetSpeed = climbing ? ClimbSpeed : MoveSpeed;
@@ -229,8 +245,8 @@ public class CharacterMovement : MonoBehaviour
         // 5. Input direction
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
-        // 6. Rotation (only if moving and not climbing)
-        if (move != Vector2.zero && Grounded && !climbing)
+        // 6. Rotation (only if moving and jumping, not climbing, not dragging)
+        if (move != Vector2.zero && !climbing && !drag)
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
                                 + _mainCamera.transform.eulerAngles.y;
@@ -257,18 +273,42 @@ public class CharacterMovement : MonoBehaviour
             Vector3 wallRight = Vector3.Cross(wallNormal, wallUp).normalized;
             wallUp = Vector3.Cross(wallRight, wallNormal).normalized;
 
-            // Apply different speeds
             Vector3 climbMove =
                 wallUp * move.y * ClimbUpSpeed +
                 wallRight * move.x * ClimbSideSpeed;
 
             velocity = climbMove;
-
-            // stick to wall
             velocity += -wallNormal * 2f;
-            //rotate 
+
             Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+        }
+        else if (drag && inDragZone && box != null)
+        {
+            // While dragging: only allow movement along the push/pull axis
+            // Forward input = push box away, Backward input = pull box toward player
+            float forwardAmount = move.y; // use raw vertical input only
+
+            if (Mathf.Abs(forwardAmount) > 0.1f)
+            {
+                Vector3 pushDirection = -boxNormal;
+                float moveDir = Mathf.Sign(forwardAmount);
+                Vector3 dragMove = pushDirection * moveDir * DragSpeed * Time.deltaTime;
+
+                _controller.Move(dragMove + Vector3.up * _verticalVelocity * Time.deltaTime);
+                box.position += dragMove;
+            }
+            else
+            {
+                // No input while dragging — stay still
+                _controller.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
+            }
+
+            // Always face the box while dragging
+            Quaternion dragRotation = Quaternion.LookRotation(-boxNormal);
+            transform.rotation = Quaternion.Slerp(transform.rotation, dragRotation, Time.deltaTime * 10f);
+
+            return; // skip the normal _controller.Move below
         }
         else
         {
@@ -276,7 +316,7 @@ public class CharacterMovement : MonoBehaviour
             velocity = moveDirection.normalized * _speed + Vector3.up * _verticalVelocity;
         }
 
-        // 8. Apply movement
+        // 8. Apply movement (only reached if not dragging)
         _controller.Move(velocity * Time.deltaTime);
     }
 
@@ -363,12 +403,14 @@ public class CharacterMovement : MonoBehaviour
         if (Grounded || isHanging) return;
 
         Vector3 origin = transform.position + Vector3.up * ledgeHeight;
+        Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
 
         // 1. Forward ray (detect wall)
         if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
         {
             // 2. Ray from above downwards (check for top surface)
             Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
+            Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
 
             if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
             {
@@ -416,5 +458,5 @@ public class CharacterMovement : MonoBehaviour
 
         transform.position = targetPos;
     }
+    
 }
-
