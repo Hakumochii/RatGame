@@ -7,29 +7,33 @@ using UnityEngine.InputSystem;
 public class CharacterMovement : MonoBehaviour
 {
     [SerializeField] private PlayerInput _playerInput;
+
     // general movement
-    private Vector2 move;    
+    private Vector2 move;
     public bool analogMovement;
-	public bool jump;
-	public bool climb;   
-    public bool climbing;    
-    public bool drag;  
-    public bool dragForward;    
-    public bool dragBackward; 
-    [SerializeField] private float MoveSpeed = 2.0f; 
+    public bool jump;
+    public bool climb;
+    public bool climbing;
+    public bool drag;
+    public bool dragForward;
+    public bool dragBackward;
+    [SerializeField] private float MoveSpeed = 2.0f;
     [SerializeField] private float ClimbSpeed = 3.5f;
     [SerializeField] private float ClimbUpSpeed = 4.5f;
     [SerializeField] private float ClimbSideSpeed = 3.0f;
     [SerializeField] private float DragSpeed = 3.5f;
     private float _speed;
-     private float _animationBlend;
-    //Acceleration and deceleration
+    private float _animationBlend;
+    // Acceleration and deceleration
     public float SpeedChangeRate = 10.0f;
     private CharacterController _controller;
 
-    //looking
+    // ── Animator ──────────────────────────────────────────────────────────────
+    private Animator _animator;
+
+    // looking
     public Vector2 look;
-	public bool cursorInputForLook = true;
+    public bool cursorInputForLook = true;
     public bool cursorLocked = true;
     private bool IsCurrentDeviceMouse
     {
@@ -45,17 +49,17 @@ public class CharacterMovement : MonoBehaviour
 
     // camera
     private GameObject _mainCamera;
-    [SerializeField] private GameObject CinemachineCameraTarget; 
+    [SerializeField] private GameObject CinemachineCameraTarget;
     private Vector3 _initialCameraPosition;
     private Quaternion _initialCameraRotation;
-    private Vector3 cameraOffset; 
-    //How far in degrees can you move the camera up
+    private Vector3 cameraOffset;
+    // How far in degrees can you move the camera up
     public float TopClamp = 70.0f;
-    //"How far in degrees can you move the camera down
+    // How far in degrees can you move the camera down
     public float BottomClamp = -30.0f;
-    //Additional degress to override the camera. Useful for fine tuning camera position when locked
+    // Additional degrees to override the camera. Useful for fine tuning camera position when locked
     public float CameraAngleOverride = 0.0f;
-    //For locking the camera position on all axis
+    // For locking the camera position on all axis
     public bool LockCameraPosition = false;
     private float _cinemachineTargetYaw;
     private float _cinemachineTargetPitch;
@@ -67,22 +71,22 @@ public class CharacterMovement : MonoBehaviour
     private float _targetRotation = 0.0f;
     private float _rotationVelocity;
     private float _verticalVelocity;
-    private float RotationSmoothTime = 0.12f; 
+    private float RotationSmoothTime = 0.12f;
 
-    //jump
+    // jump
     public bool Grounded = true;
     public float JumpHeight = 1.2f;
     public float Gravity = -15.0f;
-    //Time required to pass before being able to jump again. Set to 0f to instantly jump again
+    // Time required to pass before being able to jump again. Set to 0f to instantly jump again
     public float JumpTimeout = 0.50f;
-    //Time required to pass before entering the fall state. Useful for walking down stairs
+    // Time required to pass before entering the fall state. Useful for walking down stairs
     public float FallTimeout = 0.15f;
     // timeout deltatime
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
     private float _terminalVelocity = 53.0f;
 
-    //climbing
+    // climbing
     public bool inClimbZone;
     private Vector3 wallNormal;
     [SerializeField] private float ledgeCheckDistance = 0.6f;
@@ -93,25 +97,27 @@ public class CharacterMovement : MonoBehaviour
     private Vector3 ledgePoint;
     private Vector3 ledgeNormal;
 
-    //draging
+    // dragging
     public bool inDragZone;
     private Vector3 boxNormal;
     private Transform box;
     private Vector3 boxEdgePoint;
-    
-    
+
 
     void Awake()
     {
         _playerInput = FindFirstObjectByType<PlayerInput>();
         _controller = GetComponent<CharacterController>();
 
+        // ── Grab Animator ────────────────────────────────────────────────────
+        _animator = GetComponent<Animator>();
+
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
         if (_mainCamera == null)
-            {
-                _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-            }
+        {
+            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        }
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
@@ -121,7 +127,7 @@ public class CharacterMovement : MonoBehaviour
 
     public void OnLook(InputAction.CallbackContext ctx)
     {
-        if(cursorInputForLook)
+        if (cursorInputForLook)
         {
             look = ctx.ReadValue<Vector2>();
         }
@@ -183,10 +189,13 @@ public class CharacterMovement : MonoBehaviour
             inClimbZone = false;
             inDragZone = false;
         }
+
         Grounded = _controller.isGrounded;
         JumpAndGravity();
         Move();
-        
+
+        // ── Drive animator parameters every frame ────────────────────────────
+        UpdateAnimator();
     }
 
     private void LateUpdate()
@@ -194,40 +203,68 @@ public class CharacterMovement : MonoBehaviour
         CameraRotation();
     }
 
+    // ── Animator Update ───────────────────────────────────────────────────────
+    private void UpdateAnimator()
+    {
+        // Locomotion blend (0 = idle, 1 = walk)
+        _animator.SetFloat("Speed", _animationBlend);
+
+        // Jump arc — JumpFall transitions to Locomotion on IsGrounded = true
+        _animator.SetBool("IsGrounded", Grounded);
+        _animator.SetBool("IsJumping", !Grounded && _verticalVelocity > 0f);
+        _animator.SetBool("IsFalling", !Grounded && _verticalVelocity < -2f);
+
+        // ── Drag / push / pull / grab idle ───────────────────────────────────
+        bool isNearDraggable = drag && inDragZone;
+        bool isPushing = isNearDraggable && move.y > 0.1f;
+        bool isPulling = isNearDraggable && move.y < -0.1f;
+        // GrabIdle: holding object but not pushing or pulling
+        bool isGrabIdle = isNearDraggable && !isPushing && !isPulling;
+
+        _animator.SetBool("IsPushing", isPushing);
+        _animator.SetBool("IsPulling", isPulling);
+        _animator.SetBool("IsGrabIdle", isGrabIdle);
+
+        // ── Climb / climb idle ────────────────────────────────────────────────
+        // ClimbIdle: pressing climb against a wall but no directional input
+        bool isClimbIdle = climb && inClimbZone && move == Vector2.zero;
+
+        _animator.SetBool("IsClimbing", climbing);
+        _animator.SetBool("IsClimbIdle", isClimbIdle);
+
+        // IsVaulting — detached until vault is re-enabled
+    }
+
     private void Move()
     {
-        CheckLedge();
+        // ── Vault / ledge hang detached — re-enable once vault is stable ─────
+        // CheckLedge();
+        // if (isHanging) { ... }
 
-        if (isHanging)
+        // 0. Determine climbing state — requires directional input so it is
+        //    mutually exclusive with ClimbIdle
+        climbing = climb && inClimbZone && move != Vector2.zero;
+
+        // 1. Reset blend immediately when drag engages so walk doesn't
+        //    bleed into push / pull / grab-idle animations
+        if (drag && inDragZone)
         {
-            _verticalVelocity = 0f;
-
-            // stay locked in place
-            if (move.y > 0.1f)
-            {
-                StartCoroutine(ClimbUpLedge());
-            }
-
-            return; // IMPORTANT: stop normal movement
+            _animationBlend = 0f;
+            _speed = 0f;
         }
 
-        // 0. Determine climbing state
-        climbing = climb && inClimbZone; 
-
-        // 1. Target speed
+        // 2. Target speed
         float targetSpeed = climbing ? ClimbSpeed : MoveSpeed;
-
         if (move == Vector2.zero && !climbing) targetSpeed = 0f;
-        
 
-        // 2. Current horizontal speed
+        // 3. Current horizontal speed
         Vector3 horizontalVelocity = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z);
         float currentSpeed = horizontalVelocity.magnitude;
 
         float inputMagnitude = analogMovement ? move.magnitude : 1f;
         float speedOffset = 0.1f;
 
-        // 3. Smooth speed change
+        // 4. Smooth speed change
         if (Mathf.Abs(currentSpeed - targetSpeed) > speedOffset)
         {
             _speed = Mathf.Lerp(currentSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
@@ -238,18 +275,22 @@ public class CharacterMovement : MonoBehaviour
             _speed = targetSpeed;
         }
 
-        // 4. Animation blend
+        // 5. Animation blend
         _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
         if (_animationBlend < 0.01f) _animationBlend = 0f;
 
-        // 5. Input direction
+        // 6. Input direction
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
+<<<<<<< Updated upstream
         // 6. Rotation (only if moving and jumping, not climbing, not dragging)
+=======
+        // 7. Rotation (only if moving, not climbing, not dragging)
+>>>>>>> Stashed changes
         if (move != Vector2.zero && !climbing && !drag)
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
-                                + _mainCamera.transform.eulerAngles.y;
+                                 + _mainCamera.transform.eulerAngles.y;
 
             float rotation = Mathf.SmoothDampAngle(
                 transform.eulerAngles.y,
@@ -262,7 +303,7 @@ public class CharacterMovement : MonoBehaviour
             _targetRotation = targetRotation;
         }
 
-        // 7. Movement direction
+        // 8. Movement direction
         Vector3 velocity;
 
         if (climbing)
@@ -287,7 +328,7 @@ public class CharacterMovement : MonoBehaviour
         {
             // While dragging: only allow movement along the push/pull axis
             // Forward input = push box away, Backward input = pull box toward player
-            float forwardAmount = move.y; // use raw vertical input only
+            float forwardAmount = move.y;
 
             if (Mathf.Abs(forwardAmount) > 0.1f)
             {
@@ -316,7 +357,7 @@ public class CharacterMovement : MonoBehaviour
             velocity = moveDirection.normalized * _speed + Vector3.up * _verticalVelocity;
         }
 
-        // 8. Apply movement (only reached if not dragging)
+        // 9. Apply movement (only reached if not dragging)
         _controller.Move(velocity * Time.deltaTime);
     }
 
@@ -361,7 +402,7 @@ public class CharacterMovement : MonoBehaviour
             jump = false;
         }
 
-        // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
+        // apply gravity over time if under terminal velocity
         if (_verticalVelocity < _terminalVelocity)
         {
             _verticalVelocity += Gravity * Time.deltaTime;
@@ -373,9 +414,8 @@ public class CharacterMovement : MonoBehaviour
         // if there is an input and camera position is not fixed
         if (look.sqrMagnitude >= _threshold && !LockCameraPosition)
         {
-            //Don't multiply mouse input by Time.deltaTime;
+            // Don't multiply mouse input by Time.deltaTime
             float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-
             float sensitivity = IsCurrentDeviceMouse ? mouseSensitivity : controllerSensitivity;
 
             _cinemachineTargetYaw += look.x * sensitivity * deltaTimeMultiplier;
@@ -387,8 +427,10 @@ public class CharacterMovement : MonoBehaviour
         _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
         // Cinemachine will follow this target
-        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
-            _cinemachineTargetYaw, 0.0f);
+        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(
+            _cinemachineTargetPitch + CameraAngleOverride,
+            _cinemachineTargetYaw,
+            0.0f);
     }
 
     private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
@@ -398,10 +440,11 @@ public class CharacterMovement : MonoBehaviour
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 
-    private void CheckLedge()
-    {
-        if (Grounded || isHanging) return;
+    // ── Ledge / vault — detached until vault animation is stable ─────────────
+    // Uncomment all three methods below and remove the comment block in Move()
+    // once you are ready to re-enable vault.
 
+<<<<<<< Updated upstream
         Vector3 origin = transform.position + Vector3.up * ledgeHeight;
         Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
 
@@ -460,3 +503,59 @@ public class CharacterMovement : MonoBehaviour
     }
     
 }
+=======
+    // private void CheckLedge()
+    // {
+    //     if (Grounded || isHanging) return;
+    //
+    //     Vector3 origin = transform.position + Vector3.up * ledgeHeight;
+    //     Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
+    //
+    //     if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
+    //     {
+    //         Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
+    //         Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
+    //
+    //         if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
+    //         {
+    //             ledgePoint  = topHit.point;
+    //             ledgeNormal = wallHit.normal;
+    //             StartHang();
+    //         }
+    //     }
+    // }
+    //
+    // private void StartHang()
+    // {
+    //     isHanging         = true;
+    //     _verticalVelocity = 0f;
+    //
+    //     Vector3 hangPos = ledgePoint - ledgeNormal * 0.5f;
+    //     hangPos.y -= 1.2f;
+    //
+    //     transform.position = hangPos;
+    //     transform.rotation = Quaternion.LookRotation(-ledgeNormal);
+    // }
+    //
+    // private IEnumerator ClimbUpLedge()
+    // {
+    //     isHanging = false;
+    //     _animator.SetBool("IsVaulting", true);
+    //
+    //     Vector3 targetPos = ledgePoint + Vector3.up * 1.0f;
+    //     float time        = 0f;
+    //     float duration    = 0.3f;
+    //     Vector3 startPos  = transform.position;
+    //
+    //     while (time < duration)
+    //     {
+    //         transform.position = Vector3.Lerp(startPos, targetPos, time / duration);
+    //         time += Time.deltaTime;
+    //         yield return null;
+    //     }
+    //
+    //     transform.position = targetPos;
+    //     _animator.SetBool("IsVaulting", false);
+    // }
+}
+>>>>>>> Stashed changes
