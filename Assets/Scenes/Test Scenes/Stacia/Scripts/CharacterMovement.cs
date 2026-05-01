@@ -282,11 +282,7 @@ public class CharacterMovement : MonoBehaviour
         // 6. Input direction
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
-<<<<<<< Updated upstream
-        // 6. Rotation (only if moving and jumping, not climbing, not dragging)
-=======
         // 7. Rotation (only if moving, not climbing, not dragging)
->>>>>>> Stashed changes
         if (move != Vector2.zero && !climbing && !drag)
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
@@ -439,12 +435,13 @@ public class CharacterMovement : MonoBehaviour
         if (lfAngle > 360f) lfAngle -= 360f;
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
+}
 
     // ── Ledge / vault — detached until vault animation is stable ─────────────
     // Uncomment all three methods below and remove the comment block in Move()
     // once you are ready to re-enable vault.
 
-<<<<<<< Updated upstream
+/*
         Vector3 origin = transform.position + Vector3.up * ledgeHeight;
         Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
 
@@ -502,8 +499,8 @@ public class CharacterMovement : MonoBehaviour
         transform.position = targetPos;
     }
     
-}
-=======
+}*/
+
     // private void CheckLedge()
     // {
     //     if (Grounded || isHanging) return;
@@ -557,5 +554,4 @@ public class CharacterMovement : MonoBehaviour
     //     transform.position = targetPos;
     //     _animator.SetBool("IsVaulting", false);
     // }
-}
->>>>>>> Stashed changes
+
