@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class ComputerManager : MonoBehaviour
+public class ComputerManagerSof : MonoBehaviour
 {
     public bool hasPassword = false;
     public bool hasCreditCard = false;

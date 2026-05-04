@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ComputerInteraction : MonoBehaviour
+public class ComputerInteractionSof : MonoBehaviour
 {
     public GameObject pressEText;
     public GameObject playerCameraObj;

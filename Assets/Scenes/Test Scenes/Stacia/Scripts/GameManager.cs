@@ -2,13 +2,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.Video;
 
 public class GameManager : MonoBehaviour
 {
+    public bool cutsceneIsPlaying;
+
     public int currentLevel = 0;
 
     public bool hasPassword = false;
-    public bool hasCrad = false;
+    public bool hasCreditCard = false;
+
+    public VideoPlayer cutscenePlayer;
 
     [Header("Cutscenes")]
     public VideoClip intro;
@@ -19,6 +24,9 @@ public class GameManager : MonoBehaviour
     public VideoClip powerIntro;
     public VideoClip powerComplete;
     public VideoClip Ending1;
+
+    //Scripts
+    private CharacterMovement _movement;
 
     // Singleton pattern because there should only be one and many scripts acess it
     private static GameManager instance;
@@ -60,6 +68,7 @@ public class GameManager : MonoBehaviour
         }
 
         DontDestroyOnLoad(this.gameObject);
+        _movement = FindFirstObjectByType<CharacterMovement>();
     }
 
     void ChangeToLevel(int currentLevel)
@@ -72,14 +81,21 @@ public class GameManager : MonoBehaviour
 
     void ChangeLevel()
     {
-        currentLevel + 1;
-        PlayCutscene(currentLevel);
-        
+        currentLevel += 1;
     }
 
-    void PlayCutscene(int number)
+    void PlayCutscene(VideoClip cutscene)
     {
-        
+        StartCoroiutone(Play(cutscene));
+    }
+
+    IEnumerator Play(VideoClip cutscene)
+    {
+        cutsceneIsPlaying = true;
+        float playTimeInSeconds = cutscene.length;
+        cutscenePlayer.Play(cutscene); 
+        yield return new WaitForSeconds(playTimeInSeconds);
+        cutsceneIsPlaying = false;
     }
 
 }
