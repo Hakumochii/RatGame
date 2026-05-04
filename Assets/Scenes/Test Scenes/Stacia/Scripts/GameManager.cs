@@ -2,13 +2,16 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.Video;
 
 public class GameManager : MonoBehaviour
 {
     public int currentLevel = 0;
 
     public bool hasPassword = false;
-    public bool hasCrad = false;
+    public bool hasCreditCard = false;
+
+    public VideoPlayer cutscenePlayer;
 
     [Header("Cutscenes")]
     public VideoClip intro;
@@ -72,14 +75,12 @@ public class GameManager : MonoBehaviour
 
     void ChangeLevel()
     {
-        currentLevel + 1;
-        PlayCutscene(currentLevel);
-        
+        currentLevel += 1;
     }
 
-    void PlayCutscene(int number)
+    void PlayCutscene(int cutsceneNumber)
     {
-        
+        //cutscenePlayer.Play(cutsceneNumber);  
     }
 
 }

@@ -3,9 +3,8 @@ using System.Collections;
 
 public class ComputerManager : MonoBehaviour
 {
-    public bool hasPassword = false;
-    public bool hasCreditCard = false;
-
+    private GameManager _gameManager;
+    
     [SerializeField] private GameObject loginScreen;
     [SerializeField] private GameObject wrongPasswordScreen;
     [SerializeField] private GameObject hintScreen;
@@ -18,14 +17,17 @@ public class ComputerManager : MonoBehaviour
 
      [SerializeField] private float loadingTime = 5f;
 
+    void Awake()
+    {
+        _gameManager = FindFirstObjectByType<GameManager>();
+    }
 
     public void ConfirmPassword()
     {
-        if (hasPassword == false)
+        if (_gameManager.hasPassword == false)
         {
             loginScreen.SetActive(false);
             wrongPasswordScreen.SetActive(true);
-            hasPassword = true;
         }
         else
         {
@@ -38,11 +40,10 @@ public class ComputerManager : MonoBehaviour
 
     public void ConfirmPayment()
     {
-        if (hasCreditCard == false)
+        if (_gameManager.hasCreditCard == false)
         {
             paymentScreen.SetActive(false);
             declinedPaymentScreen.SetActive(true);
-            hasCreditCard = true;
         }
         else
         {
