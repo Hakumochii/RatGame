@@ -30,6 +30,11 @@ public class CharacterMovement : MonoBehaviour
 
     // ── Animator ──────────────────────────────────────────────────────────────
     private Animator _animator;
+    // Tracks grounded state from the previous frame to detect the landing frame
+    private bool _wasGrounded;
+    // Ensures the Land trigger only fires after the rat has genuinely been airborne,
+    // preventing accidental triggers during jump takeoff flicker
+    private bool _hasBeenAirborne;
 
     // looking
     public Vector2 look;
@@ -67,7 +72,7 @@ public class CharacterMovement : MonoBehaviour
     [SerializeField] private float mouseSensitivity = 2.0f;
     [SerializeField] private float controllerSensitivity = 100.0f;
 
-    // direction and turning    
+    // direction and turning
     private float _targetRotation = 0.0f;
     private float _rotationVelocity;
     private float _verticalVelocity;
@@ -108,8 +113,6 @@ public class CharacterMovement : MonoBehaviour
     {
         _playerInput = FindFirstObjectByType<PlayerInput>();
         _controller = GetComponent<CharacterController>();
-
-        // ── Grab Animator ────────────────────────────────────────────────────
         _animator = GetComponent<Animator>();
 
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
@@ -193,8 +196,6 @@ public class CharacterMovement : MonoBehaviour
         Grounded = _controller.isGrounded;
         JumpAndGravity();
         Move();
-
-        // ── Drive animator parameters every frame ────────────────────────────
         UpdateAnimator();
     }
 
@@ -209,10 +210,25 @@ public class CharacterMovement : MonoBehaviour
         // Locomotion blend (0 = idle, 1 = walk)
         _animator.SetFloat("Speed", _animationBlend);
 
-        // Jump arc — JumpFall transitions to Locomotion on IsGrounded = true
+        // ── Jump arc ──────────────────────────────────────────────────────────
         _animator.SetBool("IsGrounded", Grounded);
+        // Rising phase
         _animator.SetBool("IsJumping", !Grounded && _verticalVelocity > 0f);
-        _animator.SetBool("IsFalling", !Grounded && _verticalVelocity < -2f);
+        // Falling phase — <= 0 closes the dead zone at the top of the arc
+        _animator.SetBool("IsFalling", !Grounded && _verticalVelocity <= 0f);
+
+        // ── Landing ───────────────────────────────────────────────────────────
+        // Track whether we have genuinely left the ground
+        if (!Grounded) _hasBeenAirborne = true;
+
+        // Only fire the Land trigger if we were truly airborne first,
+        // preventing false triggers from the brief grounded flicker at jump takeoff
+        if (Grounded && !_wasGrounded && _hasBeenAirborne)
+        {
+            _animator.SetTrigger("Land");
+            _hasBeenAirborne = false;
+        }
+        _wasGrounded = Grounded;
 
         // ── Drag / push / pull / grab idle ───────────────────────────────────
         bool isNearDraggable = drag && inDragZone;
@@ -435,71 +451,10 @@ public class CharacterMovement : MonoBehaviour
         if (lfAngle > 360f) lfAngle -= 360f;
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
-}
 
     // ── Ledge / vault — detached until vault animation is stable ─────────────
     // Uncomment all three methods below and remove the comment block in Move()
     // once you are ready to re-enable vault.
-
-/*
-        Vector3 origin = transform.position + Vector3.up * ledgeHeight;
-        Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
-
-        // 1. Forward ray (detect wall)
-        if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
-        {
-            // 2. Ray from above downwards (check for top surface)
-            Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
-            Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
-
-            if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
-            {
-                // Found a ledge!
-                ledgePoint = topHit.point;
-                ledgeNormal = wallHit.normal;
-
-                StartHang();
-            }
-        }
-    }
-
-    private void StartHang()
-    {
-        isHanging = true;
-        _verticalVelocity = 0f;
-
-        // snap player to ledge
-        Vector3 hangPos = ledgePoint - ledgeNormal * 0.5f;
-        hangPos.y -= 1.2f; // adjust for character height
-
-        transform.position = hangPos;
-
-        // face the wall
-        transform.rotation = Quaternion.LookRotation(-ledgeNormal);
-    }
-
-    private IEnumerator ClimbUpLedge()
-    {
-        isHanging = false;
-
-        Vector3 targetPos = ledgePoint + Vector3.up * 1.0f;
-
-        float time = 0f;
-        float duration = 0.3f;
-
-        Vector3 startPos = transform.position;
-
-        while (time < duration)
-        {
-            transform.position = Vector3.Lerp(startPos, targetPos, time / duration);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.position = targetPos;
-    }
-    
-}*/
 
     // private void CheckLedge()
     // {
@@ -554,4 +509,4 @@ public class CharacterMovement : MonoBehaviour
     //     transform.position = targetPos;
     //     _animator.SetBool("IsVaulting", false);
     // }
-
+}
