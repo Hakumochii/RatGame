@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Computer : Interaction
 {
+    /*
     private GameManager _gameManager;
 
     public GameObject playerCameraObj;
@@ -97,9 +98,10 @@ public class Computer : Interaction
 
             // Lås cursor tilbage til FPS
             Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;*/
+            Cursor.visible = false;
 
         }
         
     }
+    */
 }

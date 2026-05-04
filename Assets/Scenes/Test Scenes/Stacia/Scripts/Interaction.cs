@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Interaction : CharacterMovement
 {
+    /*
     private GameManager _gameManager;
     public bool interact;
     private bool nearComputer = false;
@@ -51,4 +52,6 @@ public class Interaction : CharacterMovement
             nearComputer = false;
         }
     }
+    */
 }
+

@@ -6,6 +6,7 @@ using UnityEngine.Video;
 
 public class GameManager : MonoBehaviour
 {
+    /*
     public bool cutsceneIsPlaying;
 
     public int currentLevel = 0;
@@ -96,6 +97,6 @@ public class GameManager : MonoBehaviour
         cutscenePlayer.Play(cutscene); 
         yield return new WaitForSeconds(playTimeInSeconds);
         cutsceneIsPlaying = false;
-    }
+    }*/
 
 }
