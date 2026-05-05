@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CharacterMovement : MonoBehaviour
+public class RatBehaviour : MonoBehaviour
 {
     [SerializeField] private PlayerInput _playerInput;
 
     // general movement
     private Vector2 move;
     public bool analogMovement;
+    public bool interact;
     public bool jump;
     public bool climb;
     public bool climbing;
@@ -143,6 +144,11 @@ public class CharacterMovement : MonoBehaviour
         {
             look = ctx.ReadValue<Vector2>();
         }
+    }
+
+    public void OnInteract(InputAction.CallbackContext ctx)
+    {
+        interact = ctx.ReadValueAsButton();
     }
 
     public void OnJump(InputAction.CallbackContext ctx)
@@ -489,7 +495,7 @@ public class CharacterMovement : MonoBehaviour
     // to the ledge position without playing a vault clip for now.
     private void CheckLedge()
     {
-        if (Grounded || isHanging || climbing) return;
+        if (Grounded || isHanging) return;
 
         Vector3 origin = transform.position + Vector3.up * ledgeHeight;
         Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);

@@ -1,30 +1,25 @@
 using UnityEngine;
 
-public class Interaction : CharacterMovement
+public class Interaction : MonoBehaviour
 {
     private GameManager _gameManager;
-    public bool interact;
+    private RatBehaviour _rat;
     private bool nearComputer = false;
-    private bool usingComputer = false;
 
     [Header("Scripts")]
 
     Computer _computer;
-    
-    public void OnInteract(InputAction.CallbackContext ctx)
-    {
-        interact = ctx.ReadValueAsButton();
-    }
 
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
+        _rat = FindFirstObjectByType<RatBehaviour>();
         _computer = FindFirstObjectByType<Computer>();
     }
 
     void Update()
     {
-        if(interact && nearComputer)
+        if(_rat.interact && nearComputer)
         {
             _computer.InteractWithComputer();
         }

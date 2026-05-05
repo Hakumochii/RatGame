@@ -6,8 +6,6 @@ using UnityEngine.Video;
 
 public class GameManager : MonoBehaviour
 {
-    public bool cutsceneIsPlaying;
-
     public int currentLevel = 0;
 
     public bool hasPassword = false;
@@ -18,26 +16,26 @@ public class GameManager : MonoBehaviour
     public VideoPlayer cutscenePlayer;
 
     [Header("Cutscenes")]
+    public bool dontPlayFirstCutscene;
     public VideoClip intro;
     public VideoClip shelfIntro;
-    public VideoClip shelfComplete;
     public VideoClip kitchenIntro;
-    public VideoClip kitchenComplete;
     public VideoClip powerIntro;
-    public VideoClip powerComplete;
     public VideoClip Ending1;
 
     [Header("Objects")]
     public GameObject lampBefore;
     public GameObject lampAfter;
+    public GameObject player;
 
-    //Scripts
-    private CharacterMovement _movement;
+    [Header("Selfassigned")]
     //levels
-    private Tutorial _tutorial;
-    private Shelf _shelf;
-    private Kitchen _kitchen;
-    private Power _power;
+    public Tutorial _tutorial;
+    public Shelf _shelf;
+    public Kitchen _kitchen;
+    public Power _power;
+    //Scripts
+    private RatBehaviour _rat;
 
     // Singleton pattern because there should only be one and many scripts acess it
     private static GameManager instance;
@@ -81,37 +79,43 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
 
         //find scripts
-        _movement = FindFirstObjectByType<CharacterMovement>();
+        _rat = FindFirstObjectByType<RatBehaviour>();
         _tutorial = FindFirstObjectByType<Tutorial>(); 
         _shelf = FindFirstObjectByType<Shelf>(); 
         _kitchen = FindFirstObjectByType<Kitchen>(); 
         _power = FindFirstObjectByType<Power>();
 
         //start gameloop
-        _tutorial.PrepareLevel();
+        if (!dontPlayFirstCutscene)
+        {
+            _tutorial.PrepareLevel();
+        }
+        
    
     }
 
-    void ChangeLevel()
+    public void ChangeLevel()
     {
         currentLevel += 1;
     }
 
-    void PlayCutscene(VideoClip cutscene)
+    public void PlayCutscene(VideoClip cutscene)
     {
-        StartCoroiutone(Play(cutscene));
+        StartCoroutine(Play(cutscene));
     }
 
     IEnumerator Play(VideoClip cutscene)
     {
-        cutsceneIsPlaying = true;
-        float playTimeInSeconds = cutscene.length;
-        cutscenePlayer.Play(cutscene); 
-        yield return new WaitForSeconds(playTimeInSeconds);
-        cutsceneIsPlaying = false;
+        _rat.enabled = false;
+        double playTimeInSeconds = cutscene.length;
+        cutscenePlayer.clip = cutscene;
+        cutscenePlayer.Play(); 
+        yield return new WaitForSeconds((float)playTimeInSeconds);
+        cutscenePlayer.clip = null;
+        _rat.enabled = true;
     }
 
-    void DetermineAndPlayEnding()
+    public void DetermineAndPlayEnding()
     {
         //
     }

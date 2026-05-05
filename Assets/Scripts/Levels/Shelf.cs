@@ -4,7 +4,7 @@ public class Shelf : Level
 {
     public override void PrepareLevel()
     {
-        _gameManager.PlayCutscene(_gamemanager.shelfIntro);
+        _gameManager.PlayCutscene(_gameManager.shelfIntro);
         ToggleRatBehaviour();
     }
 

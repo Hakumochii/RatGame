@@ -1,11 +1,13 @@
 using UnityEngine;
 
-public class Kitchen : Level
+public class Power : Level
 {
     public override void PrepareLevel()
     {
-        _gameManager.PlayCutscene(_gamemanager.kitchenIntro);
+        _gameManager.PlayCutscene(_gameManager.powerIntro);
         ToggleRatBehaviour();
+        //remove lamp toggle new lamp position
+        //_gamemanager.lamp etc.
     }
 
     public override void ToggleRatBehaviour()
@@ -13,4 +15,5 @@ public class Kitchen : Level
         //make rat okay with going to kitchen 
         //make floor deadly
     }
+
 }

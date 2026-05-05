@@ -8,6 +8,8 @@ public class Computer : MonoBehaviour
     public GameObject playerCameraObj;
     public GameObject computerCameraObj;
     //public MonoBehaviour playerMovementScript; // reference til dit movement script
+
+    private bool usingComputer = false;
     
     [SerializeField] private GameObject loginScreen;
     [SerializeField] private GameObject wrongPasswordScreen;

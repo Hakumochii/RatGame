@@ -5,8 +5,6 @@ TagManager:
   serializedVersion: 3
   tags:
   - Climbable
-  - ClimbZone
-  - Edge
   - Dragable
   layers:
   - Default

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Level : MonoBehaviour
 {
-    private GameManager _gameManager;
+    public GameManager _gameManager;
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
@@ -10,7 +10,7 @@ public class Level : MonoBehaviour
 
     public virtual void PrepareLevel()
     {
-        _gameManager.PlayCutscene();//fill this
+        _gameManager.PlayCutscene(_gameManager.intro);
         ToggleRatBehaviour();
     }
 
