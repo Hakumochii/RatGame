@@ -5,15 +5,9 @@ public class Power : Level
     public override void PrepareLevel()
     {
         _gameManager.PlayCutscene(_gameManager.powerIntro);
-        ToggleRatBehaviour();
+        _gameManager.cat.transform.position = _gameManager.catPowerCord.transform.position;
         //remove lamp toggle new lamp position
         //_gamemanager.lamp etc.
-    }
-
-    public override void ToggleRatBehaviour()
-    {
-        //make rat okay with going to kitchen 
-        //make floor deadly
     }
 
 }

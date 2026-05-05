@@ -11,10 +11,6 @@ public class Level : MonoBehaviour
     public virtual void PrepareLevel()
     {
         _gameManager.PlayCutscene(_gameManager.intro);
-        ToggleRatBehaviour();
     }
-
-
-    public virtual void ToggleRatBehaviour(){}
 
 }

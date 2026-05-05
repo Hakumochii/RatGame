@@ -8,8 +8,6 @@ public class Computer : MonoBehaviour
     public GameObject playerCameraObj;
     public GameObject computerCameraObj;
     //public MonoBehaviour playerMovementScript; // reference til dit movement script
-
-    private bool usingComputer = false;
     
     [SerializeField] private GameObject loginScreen;
     [SerializeField] private GameObject wrongPasswordScreen;
@@ -21,7 +19,11 @@ public class Computer : MonoBehaviour
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject lowBatteryScreen;
 
-     [SerializeField] private float loadingTime = 5f;
+    [SerializeField] private float loadingTime = 5f;
+
+    private bool hasSeenHint = false;
+
+    private bool hasSeenPayment = false;
 
     void Awake()
     {
@@ -34,6 +36,7 @@ public class Computer : MonoBehaviour
         if (_gameManager.hasPassword == false)
         {
             loginScreen.SetActive(false);
+            hintScreen.SetActive(false);
             wrongPasswordScreen.SetActive(true);
         }
         else
@@ -49,6 +52,17 @@ public class Computer : MonoBehaviour
 
     }
 
+    public void BuyCheeseButton()
+    {
+        hasSeenPayment = true;
+    }
+
+    public void HintButton()
+    {
+        hasSeenHint = true;
+    }
+
+
     public void ConfirmPayment()
     {
         if (_gameManager.hasCreditCard == false)
@@ -58,6 +72,7 @@ public class Computer : MonoBehaviour
         }
         else
         {
+            _gameManager._interaction.enabled = false;
             if (_gameManager.currentLevel == 2)
             {
                 _gameManager.ChangeLevel();
@@ -76,16 +91,24 @@ public class Computer : MonoBehaviour
 
         loadingScreen.SetActive(false);
         lowBatteryScreen.SetActive(true);
+        yield return new WaitForSeconds(2);
+        InteractWithComputer();
+        _gameManager._power.PrepareLevel();
     }
 
     public void InteractWithComputer()
     {
-        if (!usingComputer)
+        StartCoroutine(StartInteraction());
+    }
+
+    IEnumerator StartInteraction()
+    {
+        if (!_gameManager.usingComputer)
         {
             // Skift til computer kamera
             playerCameraObj.SetActive(false);
             computerCameraObj.SetActive(true);
-            usingComputer = true;
+            _gameManager.usingComputer = true;
 
             //first time interaction
             if (_gameManager.currentLevel == 0)
@@ -99,49 +122,41 @@ public class Computer : MonoBehaviour
                 _gameManager.DetermineAndPlayEnding();
             }
 
-            // Lås player movement
-            //if (playerMovementScript != null)
-            ///    playerMovementScript.enabled = false;
-
             // Lås cursor op
-            //Cursor.lockState = CursorLockMode.None;
-            //Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
         else
         {
+            if (hasSeenHint && !_gameManager.cutsceneHasBeenSeen || _gameManager.currentLevel > 1)
+            {
+                //determine level
+                if (_gameManager.currentLevel == 1)
+                {
+                    _gameManager._shelf.PrepareLevel();
+                } 
+                else if (_gameManager.currentLevel == 2 && hasSeenPayment && !_gameManager.cutsceneHasBeenSeen)
+                {
+                    _gameManager._kitchen.PrepareLevel();
+                }
+                
+                _gameManager.cutsceneHasBeenSeen = true;
+                
+            }
+            
+
             // Skift tilbage til player kamera
             playerCameraObj.SetActive(true);
             computerCameraObj.SetActive(false);
-            usingComputer = false;
-
-            //determine level
-            if (_gameManager.currentLevel == 1)
-            {
-                _gameManager._shelf.PrepareLevel();
-            } 
-            else if (_gameManager.currentLevel == 2)
-            {
-                _gameManager._kitchen.PrepareLevel();
-            } 
-            else if (_gameManager.currentLevel == 3)
-            {
-                _gameManager._power.PrepareLevel();
-            } 
-            else
-            {
-                Debug.Log("somethng is wrong with level count");
-            }
+            _gameManager.usingComputer = false;
             
-            /*
-            // Lås player movement op
-            if (playerMovementScript != null)
-                playerMovementScript.enabled = true;
-
             // Lås cursor tilbage til FPS
             Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;*/
+            Cursor.visible = false;
 
         }
+        
+        yield return null;
         
     }
     

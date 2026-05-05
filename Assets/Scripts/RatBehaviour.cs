@@ -118,9 +118,12 @@ public class RatBehaviour : MonoBehaviour
     private Transform box;
     private Vector3 boxEdgePoint;
 
+    private GameManager _gameManager;
+
 
     void Awake()
     {
+        _gameManager = FindFirstObjectByType<GameManager>();
         _playerInput = FindFirstObjectByType<PlayerInput>();
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
@@ -148,7 +151,14 @@ public class RatBehaviour : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext ctx)
     {
-        interact = ctx.ReadValueAsButton();
+        if (ctx.performed)
+        {
+            interact = true;
+        }
+        else if (ctx.canceled)
+        {
+            interact = false;
+        }
     }
 
     public void OnJump(InputAction.CallbackContext ctx)
@@ -178,40 +188,44 @@ public class RatBehaviour : MonoBehaviour
 
     private void Update()
     {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, 1.2f))
+        if(!_gameManager.usingComputer)
         {
-            if (hit.collider.CompareTag("Climbable"))
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, transform.forward, out hit, 1.2f))
             {
-                wallNormal = hit.normal;
-                inClimbZone = true;
+                if (hit.collider.CompareTag("Climbable"))
+                {
+                    wallNormal = hit.normal;
+                    inClimbZone = true;
+                }
+                else
+                {
+                    inClimbZone = false;
+                }
+                if (hit.collider.CompareTag("Dragable"))
+                {
+                    box = hit.transform;
+                    boxNormal = hit.normal;
+                    inDragZone = true;
+                    boxEdgePoint = hit.point;
+                }
+                else
+                {
+                    inDragZone = false;
+                }
             }
             else
             {
                 inClimbZone = false;
-            }
-            if (hit.collider.CompareTag("Dragable"))
-            {
-                box = hit.transform;
-                boxNormal = hit.normal;
-                inDragZone = true;
-                boxEdgePoint = hit.point;
-            }
-            else
-            {
                 inDragZone = false;
             }
-        }
-        else
-        {
-            inClimbZone = false;
-            inDragZone = false;
-        }
 
-        Grounded = _controller.isGrounded;
-        JumpAndGravity();
-        Move();
-        UpdateAnimator();
+            Grounded = _controller.isGrounded;
+            JumpAndGravity();
+            Move();
+            UpdateAnimator();
+        }
+        
     }
 
     private void LateUpdate()

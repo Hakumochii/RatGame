@@ -13,6 +13,12 @@ public class GameManager : MonoBehaviour
 
     public bool hasPower = false;
 
+    public bool usingComputer = false;
+
+    public bool cutsceneHasBeenSeen = false;
+
+    public bool catOnFloor = false;
+
     public VideoPlayer cutscenePlayer;
 
     [Header("Cutscenes")]
@@ -21,19 +27,26 @@ public class GameManager : MonoBehaviour
     public VideoClip shelfIntro;
     public VideoClip kitchenIntro;
     public VideoClip powerIntro;
-    public VideoClip Ending1;
+    public VideoClip scareCat;
+    public VideoClip death;
+    public VideoClip ending1;
 
     [Header("Objects")]
     public GameObject lampBefore;
     public GameObject lampAfter;
     public GameObject player;
+    public GameObject respawnArea;
+    public GameObject cat;
+    public GameObject catPowerCord;
+    public GameObject endPicture;
 
     [Header("Selfassigned")]
     //levels
-    public Tutorial _tutorial;
+    public Level _level;
     public Shelf _shelf;
     public Kitchen _kitchen;
     public Power _power;
+    public Interaction _interaction;
     //Scripts
     private RatBehaviour _rat;
 
@@ -80,15 +93,16 @@ public class GameManager : MonoBehaviour
 
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
-        _tutorial = FindFirstObjectByType<Tutorial>(); 
+        _level = FindFirstObjectByType<Level>(); 
         _shelf = FindFirstObjectByType<Shelf>(); 
         _kitchen = FindFirstObjectByType<Kitchen>(); 
         _power = FindFirstObjectByType<Power>();
+        _interaction = FindFirstObjectByType<Interaction>();
 
         //start gameloop
         if (!dontPlayFirstCutscene)
         {
-            _tutorial.PrepareLevel();
+            _level.PrepareLevel();
         }
         
    
@@ -97,6 +111,7 @@ public class GameManager : MonoBehaviour
     public void ChangeLevel()
     {
         currentLevel += 1;
+        cutsceneHasBeenSeen = false;
     }
 
     public void PlayCutscene(VideoClip cutscene)
@@ -107,17 +122,40 @@ public class GameManager : MonoBehaviour
     IEnumerator Play(VideoClip cutscene)
     {
         _rat.enabled = false;
+        _interaction.enabled = false;
         double playTimeInSeconds = cutscene.length;
         cutscenePlayer.clip = cutscene;
         cutscenePlayer.Play(); 
         yield return new WaitForSeconds((float)playTimeInSeconds);
         cutscenePlayer.clip = null;
         _rat.enabled = true;
+        _interaction.enabled = true;
+        
     }
 
     public void DetermineAndPlayEnding()
     {
-        //
+        _rat.enabled = false;
+        _interaction.enabled = false;
+        endPicture.SetActive(true);
+        //defalut ending
+        //PlayCutscene(ending1);
+        //different conditions for different endings
+    }
+
+    public void KillAndRespawn()
+    {
+        PlayCutscene(death);
+        player.transform.position = respawnArea.transform.position;
+    }
+
+    public void KnockOverPlant()
+    {
+        PlayCutscene(scareCat);
+        hasPower = true;
+        cat.SetActive(false);
+        catOnFloor = false;
+        player.transform.position = respawnArea.transform.position;
     }
 
 }
