@@ -30,11 +30,13 @@ public class CharacterMovement : MonoBehaviour
 
     // ── Animator ──────────────────────────────────────────────────────────────
     private Animator _animator;
-    // Tracks grounded state from the previous frame to detect the landing frame
-    private bool _wasGrounded;
-    // Ensures the Land trigger only fires after the rat has genuinely been airborne,
-    // preventing accidental triggers during jump takeoff flicker
-    private bool _hasBeenAirborne;
+
+    // ── Drag latch ────────────────────────────────────────────────────────────
+    // Stays true while drag is held after making initial contact with a
+    // draggable object. Prevents a single-frame raycast miss from dropping
+    // all grab bools to false and blipping through Locomotion.
+    // Releases the moment the drag button is released.
+    private bool _dragLatch;
 
     // looking
     public Vector2 look;
@@ -91,7 +93,14 @@ public class CharacterMovement : MonoBehaviour
     private float _fallTimeoutDelta;
     private float _terminalVelocity = 53.0f;
 
-    // climbing
+    // ── Freefall ──────────────────────────────────────────────────────────────
+    // How long the rat must be falling continuously before the freefall
+    // animation triggers. Prevents it firing on small hops or steps.
+    [SerializeField] private float fallAnimationDelay = 0.3f;
+    private float _fallAnimationTimer = 0f;
+    private bool _fallAnimationActive = false;
+
+    // climbing / ledge
     public bool inClimbZone;
     private Vector3 wallNormal;
     [SerializeField] private float ledgeCheckDistance = 0.6f;
@@ -212,53 +221,75 @@ public class CharacterMovement : MonoBehaviour
 
         // ── Jump arc ──────────────────────────────────────────────────────────
         _animator.SetBool("IsGrounded", Grounded);
-        // Rising phase
+        // Rising phase of a jump
         _animator.SetBool("IsJumping", !Grounded && _verticalVelocity > 0f);
-        // Falling phase — <= 0 closes the dead zone at the top of the arc
+        // Descending phase of a jump — fires immediately when velocity tips
+        // below 0. Drives JumpFall only, not the standalone Fall animation.
         _animator.SetBool("IsFalling", !Grounded && _verticalVelocity <= 0f);
 
-        // ── Landing ───────────────────────────────────────────────────────────
-        // Track whether we have genuinely left the ground
-        if (!Grounded) _hasBeenAirborne = true;
+        // ── Freefall animation (separate from JumpFall) ───────────────────────
+        // IsFreefall drives the standalone Fall animation for cases like
+        // walking off a ledge or sliding off a wall.
+        // Only becomes true after falling for fallAnimationDelay seconds.
+        bool isFallingPhysically = !Grounded && !climbing && !isHanging
+                                   && _verticalVelocity <= 0f;
 
-        // Only fire the Land trigger if we were truly airborne first,
-        // preventing false triggers from the brief grounded flicker at jump takeoff
-        if (Grounded && !_wasGrounded && _hasBeenAirborne)
+        if (isFallingPhysically)
         {
-            _animator.SetTrigger("Land");
-            _hasBeenAirborne = false;
+            _fallAnimationTimer += Time.deltaTime;
         }
-        _wasGrounded = Grounded;
+        else
+        {
+            _fallAnimationTimer = 0f;
+            _fallAnimationActive = false;
+        }
 
-        // ── Drag / push / pull / grab idle ───────────────────────────────────
-        bool isNearDraggable = drag && inDragZone;
+        if (_fallAnimationTimer >= fallAnimationDelay)
+            _fallAnimationActive = true;
+
+        _animator.SetBool("IsFreefall", _fallAnimationActive);
+
+        // ── Drag latch ────────────────────────────────────────────────────────
+        // Set latch when drag button is held and we are in contact with a
+        // draggable object. Keep it set while drag is held even if the
+        // raycast briefly misses. Release only when drag button is released.
+        if (drag && inDragZone) _dragLatch = true;
+        if (!drag) _dragLatch = false;
+
+        bool isNearDraggable = drag && _dragLatch;
+
+        // ── Push / pull / grab idle ───────────────────────────────────────────
         bool isPushing = isNearDraggable && move.y > 0.1f;
         bool isPulling = isNearDraggable && move.y < -0.1f;
-        // GrabIdle: holding object but not pushing or pulling
+        // GrabIdle: holding object but not actively pushing or pulling
         bool isGrabIdle = isNearDraggable && !isPushing && !isPulling;
 
         _animator.SetBool("IsPushing", isPushing);
         _animator.SetBool("IsPulling", isPulling);
         _animator.SetBool("IsGrabIdle", isGrabIdle);
 
-        // ── Climb / climb idle ────────────────────────────────────────────────
-        // ClimbIdle: pressing climb against a wall but no directional input
-        bool isClimbIdle = climb && inClimbZone && move == Vector2.zero;
-
+        // ── Climbing ──────────────────────────────────────────────────────────
         _animator.SetBool("IsClimbing", climbing);
-        _animator.SetBool("IsClimbIdle", isClimbIdle);
-
-        // IsVaulting — detached until vault is re-enabled
     }
 
     private void Move()
     {
-        // ── Vault / ledge hang detached — re-enable once vault is stable ─────
-        // CheckLedge();
-        // if (isHanging) { ... }
+        // ── Ledge hang — vault animation still detached ───────────────────────
+        CheckLedge();
 
-        // 0. Determine climbing state — requires directional input so it is
-        //    mutually exclusive with ClimbIdle
+        if (isHanging)
+        {
+            _verticalVelocity = 0f;
+
+            if (move.y > 0.1f)
+            {
+                StartCoroutine(ClimbUpLedge());
+            }
+
+            return;
+        }
+
+        // 0. Determine climbing state — requires directional input
         climbing = climb && inClimbZone && move != Vector2.zero;
 
         // 1. Reset blend immediately when drag engages so walk doesn't
@@ -452,61 +483,65 @@ public class CharacterMovement : MonoBehaviour
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 
-    // ── Ledge / vault — detached until vault animation is stable ─────────────
-    // Uncomment all three methods below and remove the comment block in Move()
-    // once you are ready to re-enable vault.
+    // ── Ledge detection ───────────────────────────────────────────────────────
+    // Detects when the rat is airborne and approaching a ledge it can grab.
+    // Vault animation is still detached — the rat will simply pull up
+    // to the ledge position without playing a vault clip for now.
+    private void CheckLedge()
+    {
+        if (Grounded || isHanging || climbing) return;
 
-    // private void CheckLedge()
-    // {
-    //     if (Grounded || isHanging) return;
-    //
-    //     Vector3 origin = transform.position + Vector3.up * ledgeHeight;
-    //     Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
-    //
-    //     if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
-    //     {
-    //         Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
-    //         Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
-    //
-    //         if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
-    //         {
-    //             ledgePoint  = topHit.point;
-    //             ledgeNormal = wallHit.normal;
-    //             StartHang();
-    //         }
-    //     }
-    // }
-    //
-    // private void StartHang()
-    // {
-    //     isHanging         = true;
-    //     _verticalVelocity = 0f;
-    //
-    //     Vector3 hangPos = ledgePoint - ledgeNormal * 0.5f;
-    //     hangPos.y -= 1.2f;
-    //
-    //     transform.position = hangPos;
-    //     transform.rotation = Quaternion.LookRotation(-ledgeNormal);
-    // }
-    //
-    // private IEnumerator ClimbUpLedge()
-    // {
-    //     isHanging = false;
-    //     _animator.SetBool("IsVaulting", true);
-    //
-    //     Vector3 targetPos = ledgePoint + Vector3.up * 1.0f;
-    //     float time        = 0f;
-    //     float duration    = 0.3f;
-    //     Vector3 startPos  = transform.position;
-    //
-    //     while (time < duration)
-    //     {
-    //         transform.position = Vector3.Lerp(startPos, targetPos, time / duration);
-    //         time += Time.deltaTime;
-    //         yield return null;
-    //     }
-    //
-    //     transform.position = targetPos;
-    //     _animator.SetBool("IsVaulting", false);
-    // }
+        Vector3 origin = transform.position + Vector3.up * ledgeHeight;
+        Debug.DrawRay(origin, transform.forward * ledgeCheckDistance, Color.red);
+
+        if (Physics.Raycast(origin, transform.forward, out RaycastHit wallHit, ledgeCheckDistance, ledgeLayer))
+        {
+            Vector3 downOrigin = wallHit.point + Vector3.up * 0.5f;
+            Debug.DrawRay(downOrigin, Vector3.down * 1.5f, Color.green);
+
+            if (Physics.Raycast(downOrigin, Vector3.down, out RaycastHit topHit, 1.5f, ledgeLayer))
+            {
+                ledgePoint = topHit.point;
+                ledgeNormal = wallHit.normal;
+                StartHang();
+            }
+        }
+    }
+
+    private void StartHang()
+    {
+        isHanging = true;
+        _verticalVelocity = 0f;
+
+        Vector3 hangPos = ledgePoint - ledgeNormal * 0.5f;
+        hangPos.y -= 1.2f;
+
+        transform.position = hangPos;
+        transform.rotation = Quaternion.LookRotation(-ledgeNormal);
+    }
+
+    // ── Ledge climb-up — no vault animation yet ───────────────────────────────
+    // Uncomment the SetBool lines once you are ready to re-enable vault.
+    private IEnumerator ClimbUpLedge()
+    {
+        isHanging = false;
+
+        // _animator.SetBool("IsVaulting", true);  // re-enable with vault
+
+        Vector3 targetPos = ledgePoint + Vector3.up * 1.0f;
+        float time = 0f;
+        float duration = 0.3f;
+        Vector3 startPos = transform.position;
+
+        while (time < duration)
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPos;
+
+        // _animator.SetBool("IsVaulting", false);  // re-enable with vault
+    }
 }
