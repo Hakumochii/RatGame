@@ -1,16 +1,15 @@
 using UnityEngine;
 
-public class Shelf : MonoBehaviour
+public class Shelf : Level
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void PrepareLevel()
     {
-        
+        _gameManager.PlayCutscene(_gamemanager.shelfIntro);
+        ToggleRatBehaviour();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void ToggleRatBehaviour()
     {
-        
+        //make rat okay with going to shelf and able to drag
     }
 }

@@ -1,16 +1,19 @@
 using UnityEngine;
 
-public class Power : MonoBehaviour
+public class Power : Level
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void PrepareLevel()
     {
-        
+        _gameManager.PlayCutscene(_gamemanager.powerIntro);
+        ToggleRatBehaviour();
+        //remove lamp toggle new lamp position
+        //_gamemanager.lamp etc.
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void ToggleRatBehaviour()
     {
-        
+        //make rat okay with going to kitchen 
+        //make floor deadly
     }
+
 }

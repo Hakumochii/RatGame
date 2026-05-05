@@ -6,7 +6,6 @@ using UnityEngine.Video;
 
 public class GameManager : MonoBehaviour
 {
-    /*
     public bool cutsceneIsPlaying;
 
     public int currentLevel = 0;
@@ -14,20 +13,31 @@ public class GameManager : MonoBehaviour
     public bool hasPassword = false;
     public bool hasCreditCard = false;
 
+    public bool hasPower = false;
+
     public VideoPlayer cutscenePlayer;
 
     [Header("Cutscenes")]
     public VideoClip intro;
-    public VideoClip selfIntro;
-    public VideoClip selfComplete;
+    public VideoClip shelfIntro;
+    public VideoClip shelfComplete;
     public VideoClip kitchenIntro;
     public VideoClip kitchenComplete;
     public VideoClip powerIntro;
     public VideoClip powerComplete;
     public VideoClip Ending1;
 
+    [Header("Objects")]
+    public GameObject lampBefore;
+    public GameObject lampAfter;
+
     //Scripts
     private CharacterMovement _movement;
+    //levels
+    private Tutorial _tutorial;
+    private Shelf _shelf;
+    private Kitchen _kitchen;
+    private Power _power;
 
     // Singleton pattern because there should only be one and many scripts acess it
     private static GameManager instance;
@@ -69,15 +79,17 @@ public class GameManager : MonoBehaviour
         }
 
         DontDestroyOnLoad(this.gameObject);
-        _movement = FindFirstObjectByType<CharacterMovement>();
-    }
 
-    void ChangeToLevel(int currentLevel)
-    {
-        if(currentLevel == 1)
-        {
-            
-        }
+        //find scripts
+        _movement = FindFirstObjectByType<CharacterMovement>();
+        _tutorial = FindFirstObjectByType<Tutorial>(); 
+        _shelf = FindFirstObjectByType<Shelf>(); 
+        _kitchen = FindFirstObjectByType<Kitchen>(); 
+        _power = FindFirstObjectByType<Power>();
+
+        //start gameloop
+        _tutorial.PrepareLevel();
+   
     }
 
     void ChangeLevel()
@@ -97,6 +109,11 @@ public class GameManager : MonoBehaviour
         cutscenePlayer.Play(cutscene); 
         yield return new WaitForSeconds(playTimeInSeconds);
         cutsceneIsPlaying = false;
-    }*/
+    }
+
+    void DetermineAndPlayEnding()
+    {
+        //
+    }
 
 }

@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class Tutorial : MonoBehaviour
+public class Tutorial : Level
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void PrepareLevel()
     {
-        
+        _gameManager.PlayCutscene(_gamemanager.intro);
+        ToggleRatBehaviour();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void ToggleRatBehaviour()
     {
-        
+        //make rat unable to drag + not want to go to anythin ecept computer
     }
+
 }

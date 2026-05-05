@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Interaction : CharacterMovement
 {
-    /*
     private GameManager _gameManager;
     public bool interact;
     private bool nearComputer = false;
@@ -10,7 +9,7 @@ public class Interaction : CharacterMovement
 
     [Header("Scripts")]
 
-    Computer computerScript;
+    Computer _computer;
     
     public void OnInteract(InputAction.CallbackContext ctx)
     {
@@ -20,17 +19,14 @@ public class Interaction : CharacterMovement
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
+        _computer = FindFirstObjectByType<Computer>();
     }
 
     void Update()
     {
         if(interact && nearComputer)
         {
-            computerScript.InteractWithComputer();
-            if(_gameManager.currentLevel == 0 && !usingComputer)
-            {
-                //start level 1
-            }
+            _computer.InteractWithComputer();
         }
         
     }
@@ -52,6 +48,6 @@ public class Interaction : CharacterMovement
             nearComputer = false;
         }
     }
-    */
+    
 }
 

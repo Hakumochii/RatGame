@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class Kitchen : MonoBehaviour
+public class Kitchen : Level
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void PrepareLevel()
     {
-        
+        _gameManager.PlayCutscene(_gamemanager.kitchenIntro);
+        ToggleRatBehaviour();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void ToggleRatBehaviour()
     {
-        
+        //make rat okay with going to kitchen 
+        //make floor deadly
     }
 }
