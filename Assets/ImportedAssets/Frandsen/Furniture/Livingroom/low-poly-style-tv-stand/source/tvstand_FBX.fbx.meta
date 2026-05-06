@@ -1,24 +1,9 @@
 fileFormatVersion: 2
-guid: 32fbe69b33e69be44a7595b04ac42c87
+guid: 8ccb05ef34f43154bb4ce975f45fb9fb
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: handle
-    second: {fileID: 2100000, guid: 3d5a1d4292def7a4b8b802b53b60cedf, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: stand
-    second: {fileID: 2100000, guid: cb8567ba6c9199742b45b791dbb117fc, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: wood
-    second: {fileID: 2100000, guid: 93aec58a61206514fa65b1a528ae3b57, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0

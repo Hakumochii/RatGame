@@ -113,6 +113,7 @@ public class RatBehaviour : MonoBehaviour
     private Vector3 ledgeNormal;
 
     // dragging
+    public bool dragging = false;
     public bool inDragZone;
     private Vector3 boxNormal;
     private Transform box;
@@ -389,6 +390,7 @@ public class RatBehaviour : MonoBehaviour
         }
         else if (drag && inDragZone && box != null)
         {
+            dragging = true;
             // While dragging: only allow movement along the push/pull axis
             // Forward input = push box away, Backward input = pull box toward player
             float forwardAmount = move.y;
