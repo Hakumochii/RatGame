@@ -5,14 +5,17 @@ TagManager:
   serializedVersion: 3
   tags:
   - Climbable
-  - ClimbZone
-  - Edge
   - Dragable
+  - Computer
+  - Password
+  - Card
+  - Floor
+  - Plant
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - HasLedges

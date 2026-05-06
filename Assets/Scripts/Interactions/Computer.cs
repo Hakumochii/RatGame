@@ -1,9 +1,8 @@
 using UnityEngine;
 using System.Collections;
 
-public class Computer : Interaction
+public class Computer : MonoBehaviour
 {
-    /*
     private GameManager _gameManager;
 
     public GameObject playerCameraObj;
@@ -20,28 +19,49 @@ public class Computer : Interaction
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject lowBatteryScreen;
 
-     [SerializeField] private float loadingTime = 5f;
+    [SerializeField] private float loadingTime = 5f;
+
+    private bool hasSeenHint = false;
+
+    private bool hasSeenPayment = false;
 
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
     }
 
+    //runs when clicking a button
     public void ConfirmPassword()
-    {
+    {    
         if (_gameManager.hasPassword == false)
         {
             loginScreen.SetActive(false);
+            hintScreen.SetActive(false);
             wrongPasswordScreen.SetActive(true);
         }
         else
         {
+            if (_gameManager.currentLevel == 1)
+            {
+                _gameManager.ChangeLevel();
+            }
             loginScreen.SetActive(false);
             hintScreen.SetActive(false);
             desktopScreen.SetActive(true);
         }
 
     }
+
+    public void BuyCheeseButton()
+    {
+        hasSeenPayment = true;
+    }
+
+    public void HintButton()
+    {
+        hasSeenHint = true;
+    }
+
 
     public void ConfirmPayment()
     {
@@ -52,6 +72,11 @@ public class Computer : Interaction
         }
         else
         {
+            _gameManager._interaction.enabled = false;
+            if (_gameManager.currentLevel == 2)
+            {
+                _gameManager.ChangeLevel();
+            }
             declinedPaymentScreen.SetActive(false);
             paymentScreen.SetActive(false);
             loadingScreen.SetActive(true);
@@ -66,42 +91,73 @@ public class Computer : Interaction
 
         loadingScreen.SetActive(false);
         lowBatteryScreen.SetActive(true);
+        yield return new WaitForSeconds(2);
+        InteractWithComputer();
+        _gameManager._power.PrepareLevel();
     }
 
     public void InteractWithComputer()
     {
-        if (!usingComputer)
+        StartCoroutine(StartInteraction());
+    }
+
+    IEnumerator StartInteraction()
+    {
+        if (!_gameManager.usingComputer)
         {
             // Skift til computer kamera
             playerCameraObj.SetActive(false);
             computerCameraObj.SetActive(true);
-            usingComputer = true;
+            _gameManager.usingComputer = true;
 
-            // Lås player movement
-            //if (playerMovementScript != null)
-            ///    playerMovementScript.enabled = false;
+            //first time interaction
+            if (_gameManager.currentLevel == 0)
+            {
+                _gameManager.ChangeLevel();
+            }
+            
+            //last interaction
+            if (_gameManager.currentLevel == 3 && _gameManager.hasPower)
+            {
+                _gameManager.DetermineAndPlayEnding();
+            }
 
             // Lås cursor op
-            //Cursor.lockState = CursorLockMode.None;
-            //Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
         else
         {
+            if (hasSeenHint && !_gameManager.cutsceneHasBeenSeen || _gameManager.currentLevel > 1)
+            {
+                //determine level
+                if (_gameManager.currentLevel == 1)
+                {
+                    _gameManager._shelf.PrepareLevel();
+                } 
+                else if (_gameManager.currentLevel == 2 && hasSeenPayment && !_gameManager.cutsceneHasBeenSeen)
+                {
+                    _gameManager._kitchen.PrepareLevel();
+                }
+                
+                _gameManager.cutsceneHasBeenSeen = true;
+                
+            }
+            
+
             // Skift tilbage til player kamera
             playerCameraObj.SetActive(true);
             computerCameraObj.SetActive(false);
-            usingComputer = false;
-            /*
-            // Lås player movement op
-            if (playerMovementScript != null)
-                playerMovementScript.enabled = true;
-
+            _gameManager.usingComputer = false;
+            
             // Lås cursor tilbage til FPS
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
         }
         
+        yield return null;
+        
     }
-    */
+    
 }
