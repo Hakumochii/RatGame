@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Interaction : MonoBehaviour
 {
@@ -81,15 +82,7 @@ public class Interaction : MonoBehaviour
                 {
                     book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                 }
-            }
-            else
-            {
-                foreach (GameObject book in books)
-                {
-                    book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                    book.GetComponent<Rigidbody>().useGravity = false;
-                }
-                
+                StartCoroutine(FreezeBooks());
             }
         }
     }
@@ -101,6 +94,16 @@ public class Interaction : MonoBehaviour
             //pressEText.SetActive(false);
             nearComputer = false;
         }
+    }
+
+    IEnumerator FreezeBooks()
+    {
+        yield return new WaitForSeconds(5.0f);
+        Debug.Log("freezing books");
+        foreach (GameObject book in books)
+        {
+            book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+        }   
     }
     
 }

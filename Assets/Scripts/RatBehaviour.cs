@@ -312,6 +312,7 @@ public class RatBehaviour : MonoBehaviour
 
         // 0. Determine climbing state — requires directional input
         climbing = climb && inClimbZone && move != Vector2.zero;
+        dragging = drag && inDragZone;
 
         // 1. Reset blend immediately when drag engages so walk doesn't
         //    bleed into push / pull / grab-idle animations
@@ -390,7 +391,6 @@ public class RatBehaviour : MonoBehaviour
         }
         else if (drag && inDragZone && box != null)
         {
-            dragging = true;
             // While dragging: only allow movement along the push/pull axis
             // Forward input = push box away, Backward input = pull box toward player
             float forwardAmount = move.y;
