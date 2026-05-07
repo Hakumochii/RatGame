@@ -12,6 +12,8 @@ TagManager:
   - Floor
   - Plant
   - KnockOverBooks
+  - Swing
+  - StartSwing
   layers:
   - Default
   - TransparentFX

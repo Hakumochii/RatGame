@@ -16,6 +16,7 @@ public class RatBehaviour : MonoBehaviour
     public bool climb;
     public bool climbing;
     public bool drag;
+    public bool dragStopped;
     public bool dragForward;
     public bool dragBackward;
     [SerializeField] private float MoveSpeed = 2.0f;
@@ -116,8 +117,15 @@ public class RatBehaviour : MonoBehaviour
     public bool dragging = false;
     public bool inDragZone;
     private Vector3 boxNormal;
-    private Transform box;
+    public Transform box;
     private Vector3 boxEdgePoint;
+    public float _dragDirectionMultiplier = 1f;
+    public bool inSwingZone; // set this from your trigger script
+    private Vector3 _originalBoxPosition; // store on grab, not a Transform reference
+
+    //swinnging
+     public bool isSwinging = false;
+
 
     private GameManager _gameManager;
 
@@ -175,6 +183,15 @@ public class RatBehaviour : MonoBehaviour
     public void OnDrag(InputAction.CallbackContext ctx)
     {
         drag = ctx.ReadValueAsButton();
+
+        if (ctx.canceled)
+        {
+            dragStopped = true;
+            if (inSwingZone && box != null)
+            {
+                box.position = _originalBoxPosition;
+            }
+        }
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -268,13 +285,24 @@ public class RatBehaviour : MonoBehaviour
         if (_fallAnimationTimer >= fallAnimationDelay)
             _fallAnimationActive = true;
 
-        _animator.SetBool("IsFreefall", _fallAnimationActive);
+        if (!isSwinging) // add this check
+        {
+            if (_fallAnimationTimer >= fallAnimationDelay)
+                _fallAnimationActive = true;
+
+            _animator.SetBool("IsFreefall", _fallAnimationActive);
+        }
 
         // ── Drag latch ────────────────────────────────────────────────────────
         // Set latch when drag button is held and we are in contact with a
         // draggable object. Keep it set while drag is held even if the
         // raycast briefly misses. Release only when drag button is released.
-        if (drag && inDragZone) _dragLatch = true;
+        // In OnDrag, when released:
+        if (drag && inDragZone && !_dragLatch)
+        {
+            _originalBoxPosition = box.position;
+            _dragLatch = true;
+        }
         if (!drag) _dragLatch = false;
 
         bool isNearDraggable = drag && _dragLatch;
@@ -297,6 +325,7 @@ public class RatBehaviour : MonoBehaviour
     {
         // ── Ledge hang — vault animation still detached ───────────────────────
         CheckLedge();
+        if (isSwinging) return;
 
         if (isHanging)
         {
@@ -312,15 +341,15 @@ public class RatBehaviour : MonoBehaviour
 
         // 0. Determine climbing state — requires directional input
         climbing = climb && inClimbZone && move != Vector2.zero;
-        dragging = drag && inDragZone;
+        dragging = drag && _dragLatch; // was: drag && inDragZone
 
-        // 1. Reset blend immediately when drag engages so walk doesn't
-        //    bleed into push / pull / grab-idle animations
-        if (drag && inDragZone)
+        // 1. Reset blend immediately when drag engages
+        if (drag && _dragLatch) // was: drag && inDragZone
         {
             _animationBlend = 0f;
             _speed = 0f;
         }
+
 
         // 2. Target speed
         float targetSpeed = climbing ? ClimbSpeed : MoveSpeed;
@@ -389,8 +418,9 @@ public class RatBehaviour : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
-        else if (drag && inDragZone && box != null)
+        else if (drag && _dragLatch && box != null)
         {
+            
             // While dragging: only allow movement along the push/pull axis
             // Forward input = push box away, Backward input = pull box toward player
             float forwardAmount = move.y;
@@ -400,9 +430,11 @@ public class RatBehaviour : MonoBehaviour
                 Vector3 pushDirection = -boxNormal;
                 float moveDir = Mathf.Sign(forwardAmount);
                 Vector3 dragMove = pushDirection * moveDir * DragSpeed * Time.deltaTime;
+                Vector3 boxMove = dragMove * _dragDirectionMultiplier; // box is just dragMove flipped
 
                 _controller.Move(dragMove + Vector3.up * _verticalVelocity * Time.deltaTime);
-                box.position += dragMove;
+                box.position += boxMove;
+
             }
             else
             {
@@ -565,5 +597,35 @@ public class RatBehaviour : MonoBehaviour
         transform.position = targetPos;
 
         // _animator.SetBool("IsVaulting", false);  // re-enable with vault
+    }
+
+    public IEnumerator SwingToPosition(Vector3 targetPos, float duration = 0.8f)
+    {
+        isSwinging = true;
+        
+        Vector3 startPos = transform.position;
+        
+        // Arc midpoint — halfway between start and target, lifted upward
+        Vector3 midPoint = (startPos + targetPos) / 2f + Vector3.up * 8f;
+        
+        float time = 0f;
+        while (time < duration)
+        {
+            float t = time / duration;
+            
+            // Quadratic bezier curve for the arc
+            Vector3 a = Vector3.Lerp(startPos, midPoint, t);
+            Vector3 b = Vector3.Lerp(midPoint, targetPos, t);
+            transform.position = Vector3.Lerp(a, b, t);
+
+            _animator.SetBool("IsFreefall", true);
+            
+            time += Time.deltaTime;
+            yield return null;
+        }
+        
+        _animator.SetBool("IsFreefall", false);
+        transform.position = targetPos;
+        isSwinging = false;
     }
 }

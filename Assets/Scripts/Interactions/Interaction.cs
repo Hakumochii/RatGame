@@ -12,8 +12,10 @@ public class Interaction : MonoBehaviour
     public GameObject stickyNote;
     public GameObject creditCard;
     public GameObject plant;
-    public GameObject bookCollider;
     public GameObject[] books;
+    public GameObject stopCollider;
+    public GameObject swingCollider;
+    [SerializeField] private Transform swingLandingPoint;
 
     void Awake()
     {
@@ -83,6 +85,31 @@ public class Interaction : MonoBehaviour
                     book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                 }
                 StartCoroutine(FreezeBooks());
+            }
+        }
+        
+        if(other.CompareTag("Swing"))
+        {
+            _rat.inSwingZone = true;
+
+            if(_rat.dragging)
+            {
+                _rat._dragDirectionMultiplier = -2f;
+                stopCollider.SetActive(true);
+                swingCollider.SetActive(true);
+            }
+            else
+            {
+                stopCollider.SetActive(false);
+                swingCollider.SetActive(false);
+            }
+        }
+
+        if (other.CompareTag("StartSwing"))
+        {
+            if (_rat.dragStopped && !_rat.isSwinging && !_rat.dragging)
+            {
+                StartCoroutine(_rat.SwingToPosition(swingLandingPoint.position));
             }
         }
     }
