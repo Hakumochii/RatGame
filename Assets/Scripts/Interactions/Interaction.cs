@@ -11,8 +11,6 @@ public class Interaction : MonoBehaviour
     public GameObject stickyNote;
     public GameObject creditCard;
     public GameObject plant;
-    public GameObject bookCollider;
-    public GameObject[] books;
 
     void Awake()
     {
@@ -67,30 +65,6 @@ public class Interaction : MonoBehaviour
         {
             _gameManager.KnockOverPlant();
             plant.SetActive(false);
-        }
-
-    }
-
-    void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("KnockOverBooks"))
-        {
-            if(_rat.dragging)
-            {
-                foreach (GameObject book in books)
-                {
-                    book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-                }
-            }
-            else
-            {
-                foreach (GameObject book in books)
-                {
-                    book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                    book.GetComponent<Rigidbody>().useGravity = false;
-                }
-                
-            }
         }
     }
 

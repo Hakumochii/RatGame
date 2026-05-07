@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: 35194a57b0ed5024697fec8661c2f376
+guid: 56a6180dc90e782448a3b53b247272f0
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: ContemporaryCarpetA1
+    second: {fileID: 2800000, guid: f1b957a2e92b5e54b8499bd3cecc81ee, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
