@@ -42,7 +42,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Selfassigned")]
     //levels
-    public Level _level;
+    public Intro _intro;
     public Shelf _shelf;
     public Kitchen _kitchen;
     public Power _power;
@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
 
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
-        _level = FindFirstObjectByType<Level>(); 
+        _intro = FindFirstObjectByType<Intro>(); 
         _shelf = FindFirstObjectByType<Shelf>(); 
         _kitchen = FindFirstObjectByType<Kitchen>(); 
         _power = FindFirstObjectByType<Power>();
@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
         //start gameloop
         if (!dontPlayFirstCutscene)
         {
-            _level.PrepareLevel();
+            _intro.PrepareLevel();
         }
         
    
