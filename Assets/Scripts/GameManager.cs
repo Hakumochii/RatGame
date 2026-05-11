@@ -94,6 +94,7 @@ public class GameManager : MonoBehaviour
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
         _intro = FindFirstObjectByType<Intro>(); 
+        _intro._gameManager = this;
         _shelf = FindFirstObjectByType<Shelf>(); 
         _kitchen = FindFirstObjectByType<Kitchen>(); 
         _power = FindFirstObjectByType<Power>();
