@@ -15,6 +15,7 @@ TagManager:
   - Swing
   - StartSwing
   - CinemachineTarget
+  - Stove
   layers:
   - Default
   - TransparentFX

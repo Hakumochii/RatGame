@@ -7,6 +7,8 @@ public class Interaction : MonoBehaviour
     private RatBehaviour _rat;
     private bool nearComputer = false;
     private Computer _computer;
+    private bool stoveStarted = false;
+    private bool stoveOn = false;
 
     [Header("Objects")]
     public GameObject stickyNote;
@@ -16,12 +18,20 @@ public class Interaction : MonoBehaviour
     public GameObject stopCollider;
     public GameObject swingCollider;
     [SerializeField] private Transform swingLandingPoint;
+    public Material stoveMaterial;
+
+    [Header("Stove timer")]
+    public float duration = 5f;
+    private float timer = 0f;
+    
 
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
         _rat = FindFirstObjectByType<RatBehaviour>();
         _computer = FindFirstObjectByType<Computer>();
+        stoveMaterial.color = new Color(stoveMaterial.color.r, stoveMaterial.color.g, stoveMaterial.color.b, 0f);
+
     }
 
     void Update()
@@ -98,7 +108,7 @@ public class Interaction : MonoBehaviour
                 stopCollider.SetActive(true);
                 swingCollider.SetActive(true);
             }
-            else
+            else 
             {
                 stopCollider.SetActive(false);
                 swingCollider.SetActive(false);
@@ -110,6 +120,19 @@ public class Interaction : MonoBehaviour
             if (_rat.dragStopped && !_rat.isSwinging && !_rat.dragging)
             {
                 StartCoroutine(_rat.SwingToPosition(swingLandingPoint.position));
+            }
+        }
+
+        if (other.CompareTag("Stove"))
+        {
+            if (stoveStarted == false)
+            {
+                stoveStarted = true;
+                StartCoroutine(TurnOnStove());
+            }
+            else if (stoveOn && !_rat.isSwinging)
+            {
+                StartCoroutine(_rat.KnockBack());
             }
         }
     }
@@ -131,6 +154,44 @@ public class Interaction : MonoBehaviour
         {
             book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
         }   
+    }
+
+    IEnumerator TurnOnStove()
+    {
+        while (stoveStarted)
+        {
+            // Fade in
+            yield return StartCoroutine(FadeStove(0f, 1f));
+            stoveOn = true;
+
+            yield return new WaitForSeconds(2f);
+
+            // Fade out
+            stoveOn = false;
+            yield return StartCoroutine(FadeStove(1f, 0f));
+
+            yield return new WaitForSeconds(2f);
+        }
+    }
+
+    IEnumerator FadeStove(float startA, float endA)
+    {
+        float timer = 0f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / duration);
+
+            Color c = stoveMaterial.color;
+            stoveMaterial.color = new Color(c.r, c.g, c.b, Mathf.Lerp(startA, endA, t));
+
+            yield return null; // Wait one frame, then continue the loop
+        }
+
+        // Ensure we land exactly on the target alpha
+        Color final = stoveMaterial.color;
+        stoveMaterial.color = new Color(final.r, final.g, final.b, endA);
     }
     
 }
