@@ -3,36 +3,73 @@ using UnityEngine.Playables;
 
 public class CutsceneController : MonoBehaviour
 {
-    [Header("Cutscenes")]
-    public PlayableDirector[] cutscenes;
+    [System.Serializable]
+    public class CutsceneData
+    {
+        public PlayableDirector director;
 
-    [Header("Player")]
+        public bool useCutsceneRat;
+    }
+
+    public CutsceneData[] cutscenes;
+
     public RatBehaviour playerMovement;
+
+    public GameObject player;
+
+    public GameObject cutsceneRat;
 
     public void PlayCutscene(int index)
     {
         if (index >= 0 && index < cutscenes.Length)
         {
-            // Disable player movement
+            CutsceneData cutscene = cutscenes[index];
+
+            // Disable gameplay movement
             playerMovement.enabled = false;
 
-            // Get selected cutscene
-            PlayableDirector director = cutscenes[index];
+            // Optional cinematic rat setup
+            if (cutscene.useCutsceneRat)
+            {
+                // Match position/rotation BEFORE hiding player
+                cutsceneRat.transform.position = player.transform.position;
+                cutsceneRat.transform.rotation = player.transform.rotation;
 
-            // Listen for when cutscene ends
-            director.stopped += OnCutsceneFinished;
+                // Hide gameplay player
+                player.SetActive(false);
 
-            // Play cutscene
-            director.Play();
+                // Show cinematic rat
+                cutsceneRat.SetActive(true);
+            }
+
+            cutscene.director.stopped += OnCutsceneFinished;
+
+            cutscene.director.Play();
         }
     }
 
-    private void OnCutsceneFinished(PlayableDirector director)
+    void OnCutsceneFinished(PlayableDirector director)
     {
-        // Enable movement again
+        foreach (CutsceneData cutscene in cutscenes)
+        {
+            if (cutscene.director == director)
+            {
+                if (cutscene.useCutsceneRat)
+                {
+                    // Hide cinematic rat
+                    cutsceneRat.SetActive(false);
+
+                    // Show gameplay player again
+                    player.SetActive(true);
+                }
+
+                break;
+            }
+        }
+
+        // Re-enable gameplay movement
         playerMovement.enabled = true;
 
-        // Remove listener
         director.stopped -= OnCutsceneFinished;
     }
 }
