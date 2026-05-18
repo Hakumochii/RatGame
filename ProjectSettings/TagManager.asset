@@ -16,6 +16,7 @@ TagManager:
   - StartSwing
   - CinemachineTarget
   - Stove
+  - Water
   layers:
   - Default
   - TransparentFX
@@ -25,8 +26,8 @@ TagManager:
   - UI
   - HasLedges
   - CameraCollider
-  - 
-  - 
+  - WallForDragable
+  - Dragable
   - 
   - 
   - 

@@ -122,12 +122,6 @@ public class RatBehaviour : MonoBehaviour
     public float _dragDirectionMultiplier = 1f;
     public bool inSwingZone; // set this from your trigger script
     private Vector3 _originalBoxPosition; // store on grab, not a Transform reference
-    [SerializeField] private float stuckDistanceThreshold = 0.1f;
-    [SerializeField] private float stuckTimeThreshold = 1.0f;
-
-    private Vector3 _lastDragCheckPosition;
-    private float _dragStuckTimer;
-    private bool _dragBlocked;
 
     //swinnging
      public bool isSwinging = false;
@@ -413,9 +407,11 @@ public class RatBehaviour : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
-        /*else if (drag && _dragLatch && box != null)
+        else if (dragging && box != null)
         {
             float forwardAmount = move.y;
+
+            if (!inDragZone){return;}
 
             if (Mathf.Abs(forwardAmount) > 0.1f)
             {
@@ -439,67 +435,6 @@ public class RatBehaviour : MonoBehaviour
         }
         else
         {
-            Vector3 moveDirection = Quaternion.Euler(0f, _targetRotation, 0f) * Vector3.forward;
-            velocity = moveDirection.normalized * _speed + Vector3.up * _verticalVelocity;
-        }*/
-        else if (drag && _dragLatch && box != null)
-        {
-            float forwardAmount = move.y;
-
-            // Initialize tracking when drag starts
-            if (_dragStuckTimer == 0f)
-            {
-                _lastDragCheckPosition = transform.position;
-            }
-
-            // Check movement distance
-            float movedDistance = Vector3.Distance(transform.position, _lastDragCheckPosition);
-
-            if (movedDistance < stuckDistanceThreshold)
-            {
-                _dragStuckTimer += Time.deltaTime;
-
-                if (_dragStuckTimer >= stuckTimeThreshold)
-                {
-                    _dragBlocked = true;
-                }
-            }
-            else
-            {
-                // Reset if player moved enough
-                _dragStuckTimer = 0f;
-                _lastDragCheckPosition = transform.position;
-                _dragBlocked = false;
-            }
-
-            // Only allow dragging if not blocked
-            if (!_dragBlocked && Mathf.Abs(forwardAmount) > 0.1f)
-            {
-                Vector3 pushDirection = -boxNormal;
-                float moveDir = Mathf.Sign(forwardAmount);
-
-                Vector3 dragMove = pushDirection * moveDir * DragSpeed * Time.deltaTime;
-                Vector3 boxMove = dragMove * _dragDirectionMultiplier;
-
-                _controller.Move(dragMove + Vector3.up * _verticalVelocity * Time.deltaTime);
-                box.position += boxMove;
-            }
-            else
-            {
-                _controller.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
-            }
-
-            Quaternion dragRotation = Quaternion.LookRotation(-boxNormal);
-            transform.rotation = Quaternion.Slerp(transform.rotation, dragRotation, Time.deltaTime * 10f);
-
-            return;
-        }
-        else
-        {
-            // Reset drag state when not dragging
-            _dragBlocked = false;
-            _dragStuckTimer = 0f;
-
             Vector3 moveDirection = Quaternion.Euler(0f, _targetRotation, 0f) * Vector3.forward;
             velocity = moveDirection.normalized * _speed + Vector3.up * _verticalVelocity;
         }
