@@ -82,6 +82,11 @@ public class Interaction : MonoBehaviour
             plant.SetActive(false);
         }
 
+        if (other.CompareTag("Water"))
+        {
+            StartCoroutine(KillWater());
+        }
+
     }
 
     void OnTriggerStay(Collider other)
@@ -192,6 +197,12 @@ public class Interaction : MonoBehaviour
         // Ensure we land exactly on the target alpha
         Color final = stoveMaterial.color;
         stoveMaterial.color = new Color(final.r, final.g, final.b, endA);
+    }
+
+    IEnumerator KillWater()
+    {
+        yield return new WaitForSeconds(0.5f);
+        _gameManager.KillAndRespawn();
     }
     
 }

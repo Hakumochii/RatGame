@@ -22,11 +22,25 @@ public class Sponge : MonoBehaviour
 
     IEnumerator MoveSponge()
     {
-        _rb.useGravity = false;
-        float speed = 5f;
-        this.transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
-        this.transform.rotation = Quaternion.RotateTowards(transform.rotation, target.rotation, speed * Time.deltaTime);
-        yield return null;
-        
+        _rb.constraints = RigidbodyConstraints.FreezeAll;
+        float moveSpeed = 2f;
+        float rotateSpeed = 50f;
+
+        while (Vector3.Distance(transform.position, target.position) > 0.01f)
+        {
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                target.position,
+                moveSpeed * Time.deltaTime
+            );
+
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                target.rotation,
+                rotateSpeed * Time.deltaTime
+            );
+
+            yield return null; // Wait one frame, then continue the loop
+        }
     }
 }

@@ -7,5 +7,8 @@ public class Kitchen : Level
         _gameManager.PlayCutscene(_gameManager.kitchenIntro);
         _gameManager.cat.SetActive(true);
         _gameManager.catOnFloor = true;
+        _gameManager.doorClosed.SetActive(true);
+        _gameManager.doorOpen.SetActive(true);
+
     }
 }

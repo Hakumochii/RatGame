@@ -39,6 +39,8 @@ public class GameManager : MonoBehaviour
     public GameObject cat;
     public GameObject catPowerCord;
     public GameObject endPicture;
+    public GameObject doorOpen;
+    public GameObject doorClosed;
 
     [Header("Selfassigned")]
     //levels
