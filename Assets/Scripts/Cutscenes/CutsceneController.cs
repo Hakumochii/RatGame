@@ -29,7 +29,7 @@ public class CutsceneController : MonoBehaviour
 
     void Start()
     {
-        // Make sure cutscene actors are hidden at gameplay start
+        // Hide cutscene actors at gameplay start
         cutsceneRatActor.HideActor();
 
         cutsceneCatActor.HideActor();
@@ -112,5 +112,10 @@ public class CutsceneController : MonoBehaviour
 
         // Stop listening
         director.stopped -= OnCutsceneFinished;
+
+        // Reset timeline completely
+        director.time = 0;
+
+        director.Evaluate();
     }
 }
