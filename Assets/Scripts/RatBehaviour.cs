@@ -226,6 +226,7 @@ public class RatBehaviour : MonoBehaviour
                     boxNormal = hit.normal;
                     inDragZone = true;
                     boxEdgePoint = hit.point;
+
                 }
                 else
                 {
@@ -254,23 +255,17 @@ public class RatBehaviour : MonoBehaviour
     // ── Animator Update ───────────────────────────────────────────────────────
     private void UpdateAnimator()
     {
+        if (isSwinging) return; // KnockBack owns the animator entirely
+
         // Locomotion blend (0 = idle, 1 = walk)
         _animator.SetFloat("Speed", _animationBlend);
 
-        // ── Jump arc ──────────────────────────────────────────────────────────
         _animator.SetBool("IsGrounded", Grounded);
-        // Rising phase of a jump
         _animator.SetBool("IsJumping", !Grounded && _verticalVelocity > 0f);
-        // Descending phase of a jump — fires immediately when velocity tips
-        // below 0. Drives JumpFall only, not the standalone Fall animation.
         _animator.SetBool("IsFalling", !Grounded && _verticalVelocity <= 0f);
 
-        // ── Freefall animation (separate from JumpFall) ───────────────────────
-        // IsFreefall drives the standalone Fall animation for cases like
-        // walking off a ledge or sliding off a wall.
-        // Only becomes true after falling for fallAnimationDelay seconds.
         bool isFallingPhysically = !Grounded && !climbing && !isHanging
-                                   && _verticalVelocity <= 0f;
+                                && _verticalVelocity <= 0f;
 
         if (isFallingPhysically)
         {
@@ -285,13 +280,8 @@ public class RatBehaviour : MonoBehaviour
         if (_fallAnimationTimer >= fallAnimationDelay)
             _fallAnimationActive = true;
 
-        if (!isSwinging) // add this check
-        {
-            if (_fallAnimationTimer >= fallAnimationDelay)
-                _fallAnimationActive = true;
+        _animator.SetBool("IsFreefall", _fallAnimationActive);
 
-            _animator.SetBool("IsFreefall", _fallAnimationActive);
-        }
 
         // ── Drag latch ────────────────────────────────────────────────────────
         // Set latch when drag button is held and we are in contact with a
@@ -349,7 +339,6 @@ public class RatBehaviour : MonoBehaviour
             _animationBlend = 0f;
             _speed = 0f;
         }
-
 
         // 2. Target speed
         float targetSpeed = climbing ? ClimbSpeed : MoveSpeed;
@@ -418,35 +407,31 @@ public class RatBehaviour : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
-        else if (drag && _dragLatch && box != null)
+        else if (dragging && box != null)
         {
-            
-            // While dragging: only allow movement along the push/pull axis
-            // Forward input = push box away, Backward input = pull box toward player
             float forwardAmount = move.y;
+
+            if (!inDragZone){return;}
 
             if (Mathf.Abs(forwardAmount) > 0.1f)
             {
                 Vector3 pushDirection = -boxNormal;
                 float moveDir = Mathf.Sign(forwardAmount);
                 Vector3 dragMove = pushDirection * moveDir * DragSpeed * Time.deltaTime;
-                Vector3 boxMove = dragMove * _dragDirectionMultiplier; // box is just dragMove flipped
+                Vector3 boxMove = dragMove * _dragDirectionMultiplier;
 
                 _controller.Move(dragMove + Vector3.up * _verticalVelocity * Time.deltaTime);
                 box.position += boxMove;
-
             }
             else
             {
-                // No input while dragging — stay still
                 _controller.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
             }
 
-            // Always face the box while dragging
             Quaternion dragRotation = Quaternion.LookRotation(-boxNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, dragRotation, Time.deltaTime * 10f);
 
-            return; // skip the normal _controller.Move below
+            return;
         }
         else
         {
@@ -602,6 +587,7 @@ public class RatBehaviour : MonoBehaviour
     public IEnumerator SwingToPosition(Vector3 targetPos, float duration = 0.8f)
     {
         isSwinging = true;
+        _animator.SetBool("IsFreefall", true);
         
         Vector3 startPos = transform.position;
         
@@ -618,7 +604,7 @@ public class RatBehaviour : MonoBehaviour
             Vector3 b = Vector3.Lerp(midPoint, targetPos, t);
             transform.position = Vector3.Lerp(a, b, t);
 
-            _animator.SetBool("IsFreefall", true);
+            
             
             time += Time.deltaTime;
             yield return null;
@@ -627,5 +613,52 @@ public class RatBehaviour : MonoBehaviour
         _animator.SetBool("IsFreefall", false);
         transform.position = targetPos;
         isSwinging = false;
+    }
+
+
+    public IEnumerator KnockBack(float duration = 1.5f)
+    {
+        isSwinging = true;
+
+        // Direction AWAY from where the character is facing, in local space
+        Vector3 knockDirection = transform.TransformDirection(Vector3.back);
+        knockDirection.y = 0f; // Zero out Y so we control vertical separately
+        knockDirection.Normalize();
+
+        float horizontalSpeed = 6f;  // Tweak knockback distance feel
+        float verticalSpeed   = 15f;  // Initial upward launch
+        float gravity         = 20f; // How fast they fall back down
+
+        float velocityY = verticalSpeed;
+        float time = 0f;
+
+        drag = false;        // Release drag state
+        _dragLatch = false;  // Release latch
+
+        _animator.SetBool("IsFreefall", true);
+        _animator.SetBool("IsPushing", false);
+        _animator.SetBool("IsPulling", false);
+        _animator.SetBool("IsGrabIdle", false);
+
+        while (time < duration)
+        {
+            velocityY -= gravity * Time.deltaTime; // Apply gravity each frame
+
+            Vector3 moveVelocity = (knockDirection * horizontalSpeed + Vector3.up * velocityY) 
+                                * Time.deltaTime;
+
+            _controller.Move(moveVelocity); // Respects colliders
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        _animator.SetBool("IsFreefall", false);
+        _animator.SetBool("IsGrounded", Grounded);
+        _fallAnimationTimer = 0f;
+        _fallAnimationActive = false;
+        isSwinging = false;
+
+        yield return new WaitForSeconds(2f);
     }
 }
