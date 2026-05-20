@@ -28,7 +28,7 @@ TagManager:
   - CameraCollider
   - WallForDragable
   - Dragable
-  - 
+  - Dragcollider
   - 
   - 
   - 
