@@ -59,6 +59,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Skip",
+                    "type": "Button",
+                    "id": "78c01535-f465-40fe-ab6a-fa36e12ace19",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -174,6 +183,17 @@
                 },
                 {
                     "name": "",
+                    "id": "b9c92099-de12-4478-a307-379288ba35ee",
+                    "path": "<Gamepad>/dpad",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "d78e96c8-b0cc-4a92-a395-7c71c1f7e6aa",
                     "path": "<Keyboard>/leftShift",
                     "interactions": "",
@@ -184,15 +204,37 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "1fd1f209-81e4-4d12-86da-c3ca9e69a613",
+                    "name": "Two Modifiers",
+                    "id": "7cfc765d-9b6f-4349-825b-1783b211501e",
+                    "path": "TwoModifiers",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Climb",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier1",
+                    "id": "15a492e9-c8a5-4ff2-8869-2c302f62affb",
                     "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Gamepad",
+                    "groups": "",
                     "action": "Climb",
                     "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "modifier2",
+                    "id": "1252567f-d58b-4aaf-894c-be49667efeed",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Climb",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -219,18 +261,7 @@
                 {
                     "name": "",
                     "id": "9799126b-eb46-4c85-89f1-626002e7b436",
-                    "path": "<DualShockGamepad>/buttonSouth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Interact",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "564f414d-3d5f-4290-acbc-efba79bb0a8b",
-                    "path": "<SwitchProControllerHID>/buttonEast",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -252,18 +283,7 @@
                 {
                     "name": "",
                     "id": "a2178e72-8ebc-4f2c-8f3b-923f23e19b5c",
-                    "path": "<DualShockGamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "dbba5057-0d9c-45dd-8572-3ce770bb7078",
-                    "path": "<SwitchProControllerHID>/buttonSouth",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -294,13 +314,57 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "21c818b6-c6c2-4c53-a32a-c610c1e6f428",
-                    "path": "<Gamepad>/rightTrigger",
+                    "name": "Two Modifiers",
+                    "id": "71472d15-c91a-4cfb-b833-ade4f7e2de77",
+                    "path": "TwoModifiers",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Drag",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier1",
+                    "id": "a6313f48-e478-43c1-a78e-e4e094597d03",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drag",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "modifier2",
+                    "id": "b2f77c2d-abb6-4bae-8d1c-4ccfcbaf4d32",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drag",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "a1557913-2372-4e26-b10f-6502dc9fe979",
+                    "path": "<Keyboard>/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Skip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c6b042f2-ccb5-4639-a01d-befdba98fe8c",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Skip",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

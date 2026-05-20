@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
 
     public VideoPlayer cutscenePlayer;
 
+    public bool cutscenePlaying;
+    private Coroutine _currentCutscene;
+
     [Header("Cutscenes")]
     public bool dontPlayFirstCutscene;
     public VideoClip intro;
@@ -119,21 +122,39 @@ public class GameManager : MonoBehaviour
 
     public void PlayCutscene(VideoClip cutscene)
     {
-        StartCoroutine(Play(cutscene));
+        _currentCutscene = StartCoroutine(Play(cutscene));
     }
 
     IEnumerator Play(VideoClip cutscene)
     {
+        cutscenePlaying = true;
         _rat.enabled = false;
         _interaction.enabled = false;
-        double playTimeInSeconds = cutscene.length;
+
         cutscenePlayer.clip = cutscene;
-        cutscenePlayer.Play(); 
-        yield return new WaitForSeconds((float)playTimeInSeconds);
+        cutscenePlayer.time = 0;        // always start from beginning
+        cutscenePlayer.Play();
+
+        yield return new WaitForSeconds((float)cutscene.length);
+
+        EndVideoCutscene();
+    }
+
+    public void EndVideoCutscene()
+    {
+        if (_currentCutscene != null)
+        {
+            StopCoroutine(_currentCutscene);
+            _currentCutscene = null;
+        }
+
+        cutscenePlayer.Stop();
+        cutscenePlayer.time = 0;        // rewind to start
+        cutscenePlayer.frame = 0;       // ensure frame is reset too
         cutscenePlayer.clip = null;
         _rat.enabled = true;
         _interaction.enabled = true;
-        
+        cutscenePlaying = false;
     }
 
     public void DetermineAndPlayEnding()

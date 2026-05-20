@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.Playables;
+using Cinemachine;
 
 public class CutsceneController : MonoBehaviour
 {
     [System.Serializable]
     public class CutsceneData
     {
+        public GameObject setUp;
         public PlayableDirector director;
 
         public bool useCutsceneRat;
@@ -17,15 +19,23 @@ public class CutsceneController : MonoBehaviour
 
     [Header("Gameplay References")]
     public RatBehaviour playerMovement;
+    public Interaction _interaction;
 
     public GameObject player;
 
     public GameObject gameplayCat;
+    public GameManager _gameManager;
 
     [Header("Cutscene Actors")]
     public CutsceneActor cutsceneRatActor;
 
     public CutsceneActor cutsceneCatActor;
+
+    public PlayableDirector _activeCutsceneDirector;
+    
+    public GameObject _activeSetUp;
+
+
 
     void Start()
     {
@@ -33,6 +43,8 @@ public class CutsceneController : MonoBehaviour
         cutsceneRatActor.HideActor();
 
         cutsceneCatActor.HideActor();
+
+        _gameManager = FindFirstObjectByType<GameManager>();
     }
 
     public void PlayCutscene(int index)
@@ -42,7 +54,10 @@ public class CutsceneController : MonoBehaviour
             CutsceneData cutscene = cutscenes[index];
 
             // Disable gameplay movement
+            //playerCamera.SetActive(false);
             playerMovement.enabled = false;
+            _interaction.enabled = false;
+            _gameManager.cutscenePlaying = true;
 
             // CUTSCENE RAT
             if (cutscene.useCutsceneRat)
@@ -69,6 +84,9 @@ public class CutsceneController : MonoBehaviour
                 cutsceneCatActor.ShowActor();
             }
 
+            _activeCutsceneDirector = cutscene.director; // store reference
+            _activeSetUp = cutscene.setUp;
+
             // Listen for cutscene ending
             cutscene.director.stopped += OnCutsceneFinished;
 
@@ -77,6 +95,18 @@ public class CutsceneController : MonoBehaviour
         }
     }
 
+    public void SkipTimelineCutscene()
+    {
+        if (_activeCutsceneDirector == null) return;
+
+        // Seek to the very end — this fires the stopped event naturally
+        _activeCutsceneDirector.time = _activeCutsceneDirector.duration;
+        _activeCutsceneDirector.Evaluate();
+        _activeCutsceneDirector.Stop(); // triggers OnCutsceneFinished
+        ActivateObjects();
+        _activeSetUp.SetActive(false);
+    }
+    
     void OnCutsceneFinished(PlayableDirector director)
     {
         foreach (CutsceneData cutscene in cutscenes)
@@ -109,6 +139,8 @@ public class CutsceneController : MonoBehaviour
 
         // Re-enable gameplay movement
         playerMovement.enabled = true;
+        _interaction.enabled = true;
+        _gameManager.cutscenePlaying = false;
 
         // Stop listening
         director.stopped -= OnCutsceneFinished;
@@ -117,5 +149,20 @@ public class CutsceneController : MonoBehaviour
         director.time = 0;
 
         director.Evaluate();
+
+        //playerCamera.SetActive(true);
+        ActivateObjects();
+        _activeSetUp.SetActive(false);
+
+    }
+
+    public void ActivateObjects()
+    {
+        if (_activeSetUp.name == "CreditcardCutscene")
+        {
+            _gameManager.cat.SetActive(true);
+            _gameManager.catOnFloor = true;
+            _gameManager.doorOpen.SetActive(true);
+        }
     }
 }

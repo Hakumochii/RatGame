@@ -4,7 +4,7 @@ public class Shelf : Level
 {
     public override void PrepareLevel()
     {
-        _gameManager.PlayCutscene(_gameManager.shelfIntro);
+        _cutsceneController.PlayCutscene(0);
         //make rat okay with going to shelf and able to drag
     }
 }
