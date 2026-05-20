@@ -23,9 +23,17 @@ public class CutsceneController : MonoBehaviour
     public GameObject gameplayCat;
 
     [Header("Cutscene Actors")]
-    public GameObject cutsceneRat;
+    public CutsceneActor cutsceneRatActor;
 
-    public GameObject cutsceneCat;
+    public CutsceneActor cutsceneCatActor;
+
+    void Start()
+    {
+        // Make sure cutscene actors are hidden at gameplay start
+        cutsceneRatActor.HideActor();
+
+        cutsceneCatActor.HideActor();
+    }
 
     public void PlayCutscene(int index)
     {
@@ -40,14 +48,15 @@ public class CutsceneController : MonoBehaviour
             if (cutscene.useCutsceneRat)
             {
                 // Match cutscene rat to gameplay player
-                cutsceneRat.transform.position = player.transform.position;
-                cutsceneRat.transform.rotation = player.transform.rotation;
+                cutsceneRatActor.transform.position = player.transform.position;
+
+                cutsceneRatActor.transform.rotation = player.transform.rotation;
 
                 // Hide gameplay player
                 player.SetActive(false);
 
                 // Show cutscene rat
-                cutsceneRat.SetActive(true);
+                cutsceneRatActor.ShowActor();
             }
 
             // CUTSCENE CAT
@@ -57,7 +66,7 @@ public class CutsceneController : MonoBehaviour
                 gameplayCat.SetActive(false);
 
                 // Show cutscene cat
-                cutsceneCat.SetActive(true);
+                cutsceneCatActor.ShowActor();
             }
 
             // Listen for cutscene ending
@@ -78,7 +87,7 @@ public class CutsceneController : MonoBehaviour
                 if (cutscene.useCutsceneRat)
                 {
                     // Hide cutscene rat
-                    cutsceneRat.SetActive(false);
+                    cutsceneRatActor.HideActor();
 
                     // Show gameplay player
                     player.SetActive(true);
@@ -88,7 +97,7 @@ public class CutsceneController : MonoBehaviour
                 if (cutscene.useCutsceneCat)
                 {
                     // Hide cutscene cat
-                    cutsceneCat.SetActive(false);
+                    cutsceneCatActor.HideActor();
 
                     // Show gameplay cat
                     gameplayCat.SetActive(true);
