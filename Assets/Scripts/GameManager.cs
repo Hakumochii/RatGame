@@ -98,17 +98,12 @@ public class GameManager : MonoBehaviour
 
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
-        _intro = FindFirstObjectByType<Intro>(); 
-        _intro._gameManager = this;
-        _shelf = FindFirstObjectByType<Shelf>(); 
-        _kitchen = FindFirstObjectByType<Kitchen>(); 
-        _power = FindFirstObjectByType<Power>();
         _interaction = FindFirstObjectByType<Interaction>();
 
         //start gameloop
         if (!dontPlayFirstCutscene)
         {
-            _intro.PrepareLevel();
+            PlayCutscene(intro);
         }
         
    

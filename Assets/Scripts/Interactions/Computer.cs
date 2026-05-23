@@ -4,6 +4,7 @@ using System.Collections;
 public class Computer : MonoBehaviour
 {
     private GameManager _gameManager;
+    public CutsceneController _cutsceneController;
 
     public GameObject playerCameraObj;
     public GameObject computerCameraObj;
@@ -28,6 +29,7 @@ public class Computer : MonoBehaviour
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
+        _cutsceneController = FindFirstObjectByType<CutsceneController>();
     }
 
     //runs when clicking a button
@@ -93,7 +95,9 @@ public class Computer : MonoBehaviour
         lowBatteryScreen.SetActive(true);
         yield return new WaitForSeconds(2);
         InteractWithComputer();
-        _gameManager._power.PrepareLevel();
+        _gameManager.lampBefore.SetActive(false);
+        _gameManager.lampAfter.SetActive(true);
+        _gameManager.PlayCutscene(_gameManager.powerIntro);
     }
 
     public void InteractWithComputer()
@@ -133,11 +137,11 @@ public class Computer : MonoBehaviour
                 //determine level
                 if (_gameManager.currentLevel == 1)
                 {
-                    _gameManager._shelf.PrepareLevel();
+                    _cutsceneController.PlayCutscene(0);
                 } 
                 else if (_gameManager.currentLevel == 2 && hasSeenPayment && !_gameManager.cutsceneHasBeenSeen)
                 {
-                    _gameManager._kitchen.PrepareLevel();
+                    _cutsceneController.PlayCutscene(1);
                 }
                 
                 _gameManager.cutsceneHasBeenSeen = true;

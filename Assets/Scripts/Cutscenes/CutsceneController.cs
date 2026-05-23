@@ -162,7 +162,14 @@ public class CutsceneController : MonoBehaviour
         {
             _gameManager.cat.SetActive(true);
             _gameManager.catOnFloor = true;
+            _gameManager.doorClosed.SetActive(false);
             _gameManager.doorOpen.SetActive(true);
+        }
+
+        if (_activeSetUp.name == "ChargerCutscene")
+        {
+            _gameManager.lampBefore.SetActive(false);
+            _gameManager.lampAfter.SetActive(true);
         }
     }
 }
