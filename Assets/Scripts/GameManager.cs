@@ -120,11 +120,7 @@ public class GameManager : MonoBehaviour
         cutsceneHasBeenSeen = false;
     }
 
-    public void PlayCutscene(VideoClip cutscene)
-    {
-        _currentCutscene = StartCoroutine(Play(cutscene));
-    }
-
+    // Game Manager Script
     IEnumerator Play(VideoClip cutscene)
     {
         cutscenePlaying = true;
@@ -132,12 +128,27 @@ public class GameManager : MonoBehaviour
         _interaction.enabled = false;
 
         cutscenePlayer.clip = cutscene;
-        cutscenePlayer.time = 0;        // always start from beginning
+        cutscenePlayer.time = 0;
+
+        // Prepare the video first, then wait until it's ready
+        cutscenePlayer.Prepare();
+        yield return new WaitUntil(() => cutscenePlayer.isPrepared);
+
         cutscenePlayer.Play();
 
-        yield return new WaitForSeconds((float)cutscene.length);
+        // Wait until the video actually finishes playing
+        yield return new WaitUntil(() => !cutscenePlayer.isPlaying);
 
         EndVideoCutscene();
+    }
+
+    // Make sure you're storing the coroutine reference when starting it
+    public void PlayCutscene(VideoClip cutscene)
+    {
+        if (_currentCutscene != null)
+            StopCoroutine(_currentCutscene);
+
+        _currentCutscene = StartCoroutine(Play(cutscene));
     }
 
     public void EndVideoCutscene()

@@ -17,6 +17,7 @@ TagManager:
   - CinemachineTarget
   - Stove
   - Water
+  - CanDrag
   layers:
   - Default
   - TransparentFX

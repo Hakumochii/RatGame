@@ -114,6 +114,7 @@ public class RatBehaviour : MonoBehaviour
     private Vector3 ledgeNormal;
 
     // dragging
+    public bool canDrag = false;
     public bool dragging = false;
     public bool inDragZone;
     private Vector3 boxNormal;
@@ -182,16 +183,21 @@ public class RatBehaviour : MonoBehaviour
 
     public void OnDrag(InputAction.CallbackContext ctx)
     {
-        drag = ctx.ReadValueAsButton();
-
-        if (ctx.canceled)
+        if (canDrag)
         {
-            dragStopped = true;
-            if (inSwingZone && box != null)
+            drag = ctx.ReadValueAsButton();
+
+            if (ctx.canceled)
             {
-                box.position = _originalBoxPosition;
+                dragStopped = true;
+                if (inSwingZone && box != null)
+                {
+                    box.position = _originalBoxPosition;
+                }
             }
+                
         }
+        
     }
 
     private void OnApplicationFocus(bool hasFocus)

@@ -87,6 +87,11 @@ public class Interaction : MonoBehaviour
             StartCoroutine(KillWater());
         }
 
+        if (other.CompareTag("CanDrag"))
+        {
+            _rat.canDrag = true;
+        }
+
     }
 
     void OnTriggerStay(Collider other)
@@ -130,15 +135,19 @@ public class Interaction : MonoBehaviour
 
         if (other.CompareTag("Stove"))
         {
-            if (stoveStarted == false)
+            if (_rat.canDrag)
             {
-                stoveStarted = true;
-                StartCoroutine(TurnOnStove());
+                if (stoveStarted == false)
+                {
+                    stoveStarted = true;
+                    StartCoroutine(TurnOnStove());
+                }
+                else if (stoveOn && !_rat.isSwinging)
+                {
+                    StartCoroutine(_rat.KnockBack());
+                }    
             }
-            else if (stoveOn && !_rat.isSwinging)
-            {
-                StartCoroutine(_rat.KnockBack());
-            }
+            
         }
     }
 
