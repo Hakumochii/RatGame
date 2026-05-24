@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Animations.Rigging;
 
 public class RatBehaviour : MonoBehaviour
 {
@@ -17,8 +18,6 @@ public class RatBehaviour : MonoBehaviour
     public bool climbing;
     public bool drag;
     public bool dragStopped;
-    public bool dragForward;
-    public bool dragBackward;
     [SerializeField] private float MoveSpeed = 2.0f;
     [SerializeField] private float ClimbSpeed = 3.5f;
     [SerializeField] private float ClimbUpSpeed = 4.5f;
@@ -123,6 +122,10 @@ public class RatBehaviour : MonoBehaviour
     public float _dragDirectionMultiplier = 1f;
     public bool inSwingZone; // set this from your trigger script
     private Vector3 _originalBoxPosition; // store on grab, not a Transform reference
+    [SerializeField] private Transform _rigTarget;
+    [SerializeField] private Transform placeholder;
+    [SerializeField] private Rigidbody _dRigidbody; // assign in Inspector
+    private bool _wasDragging;
 
     //swinnging
      public bool isSwinging = false;
@@ -256,7 +259,31 @@ public class RatBehaviour : MonoBehaviour
     private void LateUpdate()
     {
         CameraRotation();
+        UpdateRigTarget();
     }
+
+    private void UpdateRigTarget()
+    {
+        if (_rigTarget == null || box == null) return;
+
+        if (dragging && !_wasDragging)
+        {
+            _dRigidbody.isKinematic = true; // disable physics on grab
+        }
+
+        if (!dragging && _wasDragging)
+        {
+            _dRigidbody.isKinematic = false; // re-enable physics on release
+        }
+
+        if (dragging)
+        {
+            _rigTarget.position = placeholder.position;
+        }
+
+        _wasDragging = dragging;
+    }
+
 
     // ── Animator Update ───────────────────────────────────────────────────────
     private void UpdateAnimator()
@@ -340,7 +367,7 @@ public class RatBehaviour : MonoBehaviour
         dragging = drag && _dragLatch; // was: drag && inDragZone
 
         // 1. Reset blend immediately when drag engages
-        if (drag && _dragLatch) // was: drag && inDragZone
+        if (dragging) // was: drag && inDragZone
         {
             _animationBlend = 0f;
             _speed = 0f;
@@ -376,10 +403,10 @@ public class RatBehaviour : MonoBehaviour
         Vector3 inputDir = new Vector3(move.x, 0f, move.y).normalized;
 
         // 7. Rotation (only if moving, not climbing, not dragging)
-        if (move != Vector2.zero && !climbing && !drag)
+        if (move != Vector2.zero && !climbing && !dragging) // dragging instead of drag
         {
             float targetRotation = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg
-                                 + _mainCamera.transform.eulerAngles.y;
+                                + _mainCamera.transform.eulerAngles.y;
 
             float rotation = Mathf.SmoothDampAngle(
                 transform.eulerAngles.y,

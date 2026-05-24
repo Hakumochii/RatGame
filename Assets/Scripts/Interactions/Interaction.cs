@@ -9,12 +9,14 @@ public class Interaction : MonoBehaviour
     private Computer _computer;
     private bool stoveStarted = false;
     private bool stoveOn = false;
+    private bool booksFallen = false;
 
     [Header("Objects")]
     public GameObject stickyNote;
     public GameObject creditCard;
     public GameObject plant;
     public GameObject[] books;
+    public GameObject bookDrag;
     public GameObject stopCollider;
     public GameObject swingCollider;
     [SerializeField] private Transform swingLandingPoint;
@@ -92,6 +94,11 @@ public class Interaction : MonoBehaviour
             _rat.canDrag = true;
         }
 
+        if (other.CompareTag("BookDragPass") && booksFallen)
+        {
+            bookDrag.SetActive(false);
+        }
+
     }
 
     void OnTriggerStay(Collider other)
@@ -114,7 +121,7 @@ public class Interaction : MonoBehaviour
 
             if(_rat.dragging)
             {
-                _rat._dragDirectionMultiplier = -2f;
+                //_rat._dragDirectionMultiplier = -1f;
                 stopCollider.SetActive(true);
                 swingCollider.SetActive(true);
             }
@@ -162,12 +169,15 @@ public class Interaction : MonoBehaviour
 
     IEnumerator FreezeBooks()
     {
-        yield return new WaitForSeconds(5.0f);
+        yield return new WaitForSeconds(2f);
+        booksFallen = true;
+        yield return new WaitForSeconds(3f);
         Debug.Log("freezing books");
         foreach (GameObject book in books)
         {
             book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-        }   
+        } 
+          
     }
 
     IEnumerator TurnOnStove()

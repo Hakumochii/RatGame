@@ -47,10 +47,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Selfassigned")]
     //levels
-    public Intro _intro;
-    public Shelf _shelf;
-    public Kitchen _kitchen;
-    public Power _power;
     public Interaction _interaction;
     //Scripts
     private RatBehaviour _rat;

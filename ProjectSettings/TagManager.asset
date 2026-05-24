@@ -18,6 +18,7 @@ TagManager:
   - Stove
   - Water
   - CanDrag
+  - BookDragPass
   layers:
   - Default
   - TransparentFX
