@@ -16,6 +16,6 @@ public class CutsceneTest : MonoBehaviour
         yield return new WaitForSeconds(3f);
 
         // Play first cutscene
-        cutsceneController.PlayCutscene(2);
+        cutsceneController.PlayCutscene(3);
     }
 }
