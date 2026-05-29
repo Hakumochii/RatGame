@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class Interaction : MonoBehaviour
 {
@@ -22,7 +23,14 @@ public class Interaction : MonoBehaviour
     [SerializeField] private Transform swingLandingPoint;
     public Material stoveMaterial;
     public GameObject canvasNote;
+    public GameObject canvasCard;
     public GameObject canvasComputer;
+    public UIManager uiManager;
+
+    public TextMeshProUGUI noteText;
+    public TextMeshProUGUI cardText;
+    public TextMeshProUGUI chargerText;
+
 
     [Header("Stove timer")]
     public float duration = 5f;
@@ -59,6 +67,11 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
         {
             canvasNote.SetActive(true);
+        }
+
+        if (other.CompareTag("Card") && _gameManager.currentLevel > 1)
+        {
+            canvasCard.SetActive(true);
         }
 
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
@@ -99,15 +112,17 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Password") && _gameManager.currentLevel > 0 && _rat.interact == true)
         {
             _gameManager.hasPassword = true;
+            uiManager.ShowText(noteText);
             stickyNote.SetActive(false);
             canvasNote.SetActive(false);
         }
 
         if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
         {
-            //pressEText.SetActive(true);
             _gameManager.hasCreditCard = true;
+            uiManager.ShowText(cardText);
             creditCard.SetActive(false);
+            canvasCard.SetActive(false);
         }
 
         if (other.CompareTag("KnockOverBooks"))
@@ -176,6 +191,11 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
         {
             canvasNote.SetActive(false);
+        }
+
+        if (other.CompareTag("Card") && _gameManager.currentLevel > 1)
+        {
+            canvasCard.SetActive(false);
         }
     }
 
