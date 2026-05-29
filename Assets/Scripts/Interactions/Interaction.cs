@@ -54,20 +54,6 @@ public class Interaction : MonoBehaviour
             nearComputer = true;
         }
 
-        if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
-        {
-            //pressEText.SetActive(true);
-            _gameManager.hasPassword = true;
-            stickyNote.SetActive(false);
-        }
-
-        if (other.CompareTag("Card") && _gameManager.currentLevel > 1)
-        {
-            //pressEText.SetActive(true);
-            _gameManager.hasCreditCard = true;
-            creditCard.SetActive(false);
-        }
-
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
         {
             if (_gameManager.currentLevel == 2)
@@ -103,6 +89,20 @@ public class Interaction : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
+        if (other.CompareTag("Password") && _gameManager.currentLevel > 0 && _rat.interact == true)
+        {
+            //pressEText.SetActive(true);
+            _gameManager.hasPassword = true;
+            stickyNote.SetActive(false);
+        }
+
+        if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
+        {
+            //pressEText.SetActive(true);
+            _gameManager.hasCreditCard = true;
+            creditCard.SetActive(false);
+        }
+        
         if (other.CompareTag("KnockOverBooks"))
         {
             if(_rat.dragging)
