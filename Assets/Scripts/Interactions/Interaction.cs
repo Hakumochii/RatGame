@@ -21,6 +21,8 @@ public class Interaction : MonoBehaviour
     public GameObject swingCollider;
     [SerializeField] private Transform swingLandingPoint;
     public Material stoveMaterial;
+    public GameObject canvasNote;
+    public GameObject canvasComputer;
 
     [Header("Stove timer")]
     public float duration = 5f;
@@ -50,8 +52,13 @@ public class Interaction : MonoBehaviour
     {
         if (other.CompareTag("Computer"))
         {
-            //pressEText.SetActive(true);
             nearComputer = true;
+            canvasComputer.SetActive(true);
+        }
+
+        if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
+        {
+            canvasNote.SetActive(true);
         }
 
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
@@ -91,9 +98,9 @@ public class Interaction : MonoBehaviour
     {
         if (other.CompareTag("Password") && _gameManager.currentLevel > 0 && _rat.interact == true)
         {
-            //pressEText.SetActive(true);
             _gameManager.hasPassword = true;
             stickyNote.SetActive(false);
+            canvasNote.SetActive(false);
         }
 
         if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
@@ -102,7 +109,7 @@ public class Interaction : MonoBehaviour
             _gameManager.hasCreditCard = true;
             creditCard.SetActive(false);
         }
-        
+
         if (other.CompareTag("KnockOverBooks"))
         {
             if(_rat.dragging)
@@ -162,8 +169,13 @@ public class Interaction : MonoBehaviour
     {
         if (other.CompareTag("Computer"))
         {
-            //pressEText.SetActive(false);
             nearComputer = false;
+            canvasComputer.SetActive(false);
+        }
+
+        if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
+        {
+            canvasNote.SetActive(false);
         }
     }
 
