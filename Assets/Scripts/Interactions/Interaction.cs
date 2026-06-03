@@ -22,9 +22,6 @@ public class Interaction : MonoBehaviour
     public GameObject swingCollider;
     [SerializeField] private Transform swingLandingPoint;
     public Material stoveMaterial;
-    public GameObject canvasNote;
-    public GameObject canvasCard;
-    public GameObject canvasComputer;
     public UIManager uiManager;
 
     public TextMeshProUGUI noteText;
@@ -61,17 +58,6 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Computer"))
         {
             nearComputer = true;
-            canvasComputer.SetActive(true);
-        }
-
-        if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
-        {
-            canvasNote.SetActive(true);
-        }
-
-        if (other.CompareTag("Card") && _gameManager.currentLevel > 1)
-        {
-            canvasCard.SetActive(true);
         }
 
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
@@ -114,7 +100,6 @@ public class Interaction : MonoBehaviour
             _gameManager.hasPassword = true;
             uiManager.ShowText(noteText);
             stickyNote.SetActive(false);
-            canvasNote.SetActive(false);
         }
 
         if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
@@ -122,7 +107,6 @@ public class Interaction : MonoBehaviour
             _gameManager.hasCreditCard = true;
             uiManager.ShowText(cardText);
             creditCard.SetActive(false);
-            canvasCard.SetActive(false);
         }
 
         if (other.CompareTag("KnockOverBooks"))
@@ -185,17 +169,6 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Computer"))
         {
             nearComputer = false;
-            canvasComputer.SetActive(false);
-        }
-
-        if (other.CompareTag("Password") && _gameManager.currentLevel > 0)
-        {
-            canvasNote.SetActive(false);
-        }
-
-        if (other.CompareTag("Card") && _gameManager.currentLevel > 1)
-        {
-            canvasCard.SetActive(false);
         }
     }
 
