@@ -35,23 +35,9 @@ public class Computer : MonoBehaviour
     //runs when clicking a button
     public void ConfirmPassword()
     {    
-        if (_gameManager.hasPassword == false)
-        {
-            loginScreen.SetActive(false);
-            hintScreen.SetActive(false);
-            wrongPasswordScreen.SetActive(true);
-        }
-        else
-        {
-            if (_gameManager.currentLevel == 1)
-            {
-                _gameManager.ChangeLevel();
-            }
-            loginScreen.SetActive(false);
-            hintScreen.SetActive(false);
-            desktopScreen.SetActive(true);
-        }
-
+        loginScreen.SetActive(false);
+        hintScreen.SetActive(false);
+        wrongPasswordScreen.SetActive(true);
     }
 
     public void BuyCheeseButton()
@@ -67,24 +53,8 @@ public class Computer : MonoBehaviour
 
     public void ConfirmPayment()
     {
-        if (_gameManager.hasCreditCard == false)
-        {
-            paymentScreen.SetActive(false);
-            declinedPaymentScreen.SetActive(true);
-        }
-        else
-        {
-            _gameManager._interaction.enabled = false;
-            if (_gameManager.currentLevel == 2)
-            {
-                _gameManager.ChangeLevel();
-            }
-            declinedPaymentScreen.SetActive(false);
-            paymentScreen.SetActive(false);
-            loadingScreen.SetActive(true);
-
-            StartCoroutine(LoadingSequence());
-        }
+        paymentScreen.SetActive(false);
+        declinedPaymentScreen.SetActive(true);   
     }
 
     private IEnumerator LoadingSequence()
@@ -97,7 +67,7 @@ public class Computer : MonoBehaviour
         InteractWithComputer();
         _gameManager.lampBefore.SetActive(false);
         _gameManager.lampAfter.SetActive(true);
-        _gameManager.PlayCutscene(_gameManager.powerIntro);
+        _cutsceneController.PlayCutscene(2);
     }
 
     public void InteractWithComputer()
@@ -118,6 +88,10 @@ public class Computer : MonoBehaviour
             if (_gameManager.currentLevel == 0)
             {
                 _gameManager.ChangeLevel();
+                if (_gameManager.hasPassword == true)
+                {
+                    _gameManager.ChangeLevel();
+                }
             }
             
             //last interaction
@@ -129,6 +103,31 @@ public class Computer : MonoBehaviour
             // Lås cursor op
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+
+            if (_gameManager.hasCreditCard == true)
+            {
+                _gameManager._interaction.enabled = false;
+                if (_gameManager.currentLevel == 2)
+                {
+                    _gameManager.ChangeLevel();
+                }
+                declinedPaymentScreen.SetActive(false);
+                paymentScreen.SetActive(false);
+                loadingScreen.SetActive(true);
+
+                StartCoroutine(LoadingSequence());
+            }
+            else if (_gameManager.hasPassword == true)
+            {
+                if (_gameManager.currentLevel == 1)
+                {
+                    _gameManager.ChangeLevel();
+                }
+                loginScreen.SetActive(false);
+                hintScreen.SetActive(false);
+                desktopScreen.SetActive(true);
+            }
+            
         }
         else
         {

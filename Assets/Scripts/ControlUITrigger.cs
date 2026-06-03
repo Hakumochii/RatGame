@@ -4,8 +4,9 @@ using TMPro;
 
 public class ControlUITrigger : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI messageText;
+    [SerializeField] private GameObject messageText;
     [SerializeField] private float displayTime = 5f;
+    [SerializeField] private float fadeDuration = 1f;
 
     [SerializeField] private GameObject[] objectsToDestroy;
 
@@ -13,7 +14,7 @@ public class ControlUITrigger : MonoBehaviour
 
     private void Start()
     {
-        messageText.gameObject.SetActive(false);
+        messageText.SetActive(false);
     }
 
     private void OnTriggerStay(Collider other)
@@ -28,6 +29,7 @@ public class ControlUITrigger : MonoBehaviour
         }
     }
 
+    /*
     private IEnumerator ShowText()
     {
         messageText.gameObject.SetActive(true);
@@ -42,6 +44,38 @@ public class ControlUITrigger : MonoBehaviour
             {
                 Destroy(obj);
             }
+        }
+
+        Destroy(gameObject);
+    }*/
+
+    private IEnumerator ShowText()
+    {
+        messageText.SetActive(true);
+
+        CanvasGroup canvasGroup = messageText.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = messageText.AddComponent<CanvasGroup>();
+
+        canvasGroup.alpha = 1f;
+
+        yield return new WaitForSeconds(displayTime);
+
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
+            yield return null;
+        }
+
+        messageText.SetActive(false);
+
+        foreach (GameObject obj in objectsToDestroy)
+        {
+            if (obj != null)
+                Destroy(obj);
         }
 
         Destroy(gameObject);
