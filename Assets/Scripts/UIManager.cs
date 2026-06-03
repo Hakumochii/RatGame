@@ -4,11 +4,37 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public void ShowText(TextMeshProUGUI text)
+    public void ShowText(GameObject go)
     {
-        StartCoroutine(FadeOutText(text));
+        StartCoroutine(FadeOutObject(go));
     }
 
+    private IEnumerator FadeOutObject(GameObject go)
+    {
+        go.SetActive(true);
+
+        CanvasGroup canvasGroup = go.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = go.AddComponent<CanvasGroup>();
+
+        canvasGroup.alpha = 1f;
+
+        yield return new WaitForSeconds(5f);
+
+        float duration = 1f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+            yield return null;
+        }
+
+        go.SetActive(false);
+    }
+
+    /*
     private IEnumerator FadeOutText(TextMeshProUGUI text)
     {
         text.gameObject.SetActive(true);
@@ -33,5 +59,5 @@ public class UIManager : MonoBehaviour
         }
 
         text.gameObject.SetActive(false);
-    }
+    }*/
 }

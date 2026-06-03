@@ -19,6 +19,7 @@ TagManager:
   - Water
   - CanDrag
   - BookDragPass
+  - CheckPoint
   layers:
   - Default
   - TransparentFX

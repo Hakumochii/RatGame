@@ -264,24 +264,28 @@ public class RatBehaviour : MonoBehaviour
 
     private void UpdateRigTarget()
     {
-        if (_rigTarget == null || box == null) return;
-
-        if (dragging && !_wasDragging)
+        if (inSwingZone == true)
         {
-            _dRigidbody.isKinematic = true; // disable physics on grab
-        }
+            if (_rigTarget == null || box == null) return;
 
-        if (!dragging && _wasDragging)
-        {
-            _dRigidbody.isKinematic = false; // re-enable physics on release
-        }
+            if (dragging && !_wasDragging)
+            {
+                _dRigidbody.isKinematic = true; // disable physics on grab
+            }
 
-        if (dragging)
-        {
-            _rigTarget.position = placeholder.position;
-        }
+            if (!dragging && _wasDragging)
+            {
+                _dRigidbody.isKinematic = false; // re-enable physics on release
+            }
 
-        _wasDragging = dragging;
+            if (dragging)
+            {
+                _rigTarget.position = placeholder.position;
+            }
+
+            _wasDragging = dragging;
+        }
+        
     }
 
 
@@ -323,7 +327,10 @@ public class RatBehaviour : MonoBehaviour
         // In OnDrag, when released:
         if (drag && inDragZone && !_dragLatch)
         {
-            _originalBoxPosition = box.position;
+            if (inSwingZone)
+            {
+               _originalBoxPosition = box.position; 
+            }
             _dragLatch = true;
         }
         if (!drag) _dragLatch = false;

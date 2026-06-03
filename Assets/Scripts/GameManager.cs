@@ -27,10 +27,6 @@ public class GameManager : MonoBehaviour
     [Header("Cutscenes")]
     public bool dontPlayFirstCutscene;
     public VideoClip intro;
-    public VideoClip shelfIntro;
-    public VideoClip kitchenIntro;
-    public VideoClip powerIntro;
-    public VideoClip scareCat;
     public VideoClip death;
     public VideoClip ending1;
 
@@ -38,7 +34,6 @@ public class GameManager : MonoBehaviour
     public GameObject lampBefore;
     public GameObject lampAfter;
     public GameObject player;
-    public GameObject respawnArea;
     public GameObject cat;
     public GameObject catPowerCord;
     public GameObject endPicture;
@@ -46,10 +41,10 @@ public class GameManager : MonoBehaviour
     public GameObject doorClosed;
 
     [Header("Selfassigned")]
-    //levels
+    public GameObject respawnArea;
     public Interaction _interaction;
-    //Scripts
     private RatBehaviour _rat;
+    public CutsceneController _cutsceneController;
 
     // Singleton pattern because there should only be one and many scripts acess it
     private static GameManager instance;
@@ -95,6 +90,7 @@ public class GameManager : MonoBehaviour
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
         _interaction = FindFirstObjectByType<Interaction>();
+        _cutsceneController = FindFirstObjectByType<CutsceneController>();
 
         //start gameloop
         if (!dontPlayFirstCutscene)
@@ -177,7 +173,7 @@ public class GameManager : MonoBehaviour
 
     public void KnockOverPlant()
     {
-        PlayCutscene(scareCat);
+        _cutsceneController.PlayCutscene(3);
         hasPower = true;
         cat.SetActive(false);
         catOnFloor = false;

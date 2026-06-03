@@ -24,14 +24,13 @@ public class Interaction : MonoBehaviour
     public Material stoveMaterial;
     public UIManager uiManager;
 
-    public TextMeshProUGUI noteText;
-    public TextMeshProUGUI cardText;
-    public TextMeshProUGUI chargerText;
+    [Header("UI")]
+    public GameObject noteText;
+    public GameObject cardText;
 
 
     [Header("Stove timer")]
     public float duration = 5f;
-    private float timer = 0f;
     
 
     void Awake()
@@ -55,6 +54,11 @@ public class Interaction : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("CheckPoint"))
+        {
+            _gameManager.respawnArea = other.gameObject;
+        }
+
         if (other.CompareTag("Computer"))
         {
             nearComputer = true;
@@ -95,7 +99,7 @@ public class Interaction : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Password") && _gameManager.currentLevel > 0 && _rat.interact == true)
+        if (other.CompareTag("Password") && _rat.interact == true)
         {
             _gameManager.hasPassword = true;
             uiManager.ShowText(noteText);
@@ -169,6 +173,11 @@ public class Interaction : MonoBehaviour
         if (other.CompareTag("Computer"))
         {
             nearComputer = false;
+        }
+
+        if (other.CompareTag("Swing"))
+        {
+            _rat.inSwingZone = false;
         }
     }
 
