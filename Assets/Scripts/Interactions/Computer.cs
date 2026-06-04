@@ -3,6 +3,8 @@ using System.Collections;
 
 public class Computer : MonoBehaviour
 {
+    public GameObject chargerIn;
+    public GameObject chargerOut;
     private GameManager _gameManager;
     public CutsceneController _cutsceneController;
 
@@ -64,9 +66,11 @@ public class Computer : MonoBehaviour
         loadingScreen.SetActive(false);
         lowBatteryScreen.SetActive(true);
         yield return new WaitForSeconds(2);
+
+        _gameManager._interaction.enabled = true; // ← add this
         InteractWithComputer();
-        _gameManager.lampBefore.SetActive(false);
-        _gameManager.lampAfter.SetActive(true);
+        chargerIn.SetActive(false);
+        chargerOut.SetActive(true);
         _cutsceneController.PlayCutscene(2);
     }
 

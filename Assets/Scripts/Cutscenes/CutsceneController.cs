@@ -25,9 +25,10 @@ public class CutsceneController : MonoBehaviour
 
     public GameObject player;
 
-    public GameObject gameplayCat;
+    public Animator gameCatAnimator;
 
     public GameManager _gameManager;
+
 
     [Header("Cutscene Actors")]
     public CutsceneActor cutsceneRatActor;
@@ -89,7 +90,7 @@ public class CutsceneController : MonoBehaviour
                 Debug.Log("SHOWING CUTSCENE CAT");
 
                 // Hide gameplay cat
-                gameplayCat.SetActive(false);
+                _gameManager.cat.SetActive(false);
 
                 // Show cutscene cat
                 cutsceneCatActor.ShowActor();
@@ -112,79 +113,99 @@ public class CutsceneController : MonoBehaviour
     {
         if (_activeCutsceneDirector == null) return;
 
-        // Jump to end
+        // Unsubscribe first to prevent OnCutsceneFinished firing twice
+        _activeCutsceneDirector.stopped -= OnCutsceneFinished;
+
         _activeCutsceneDirector.time = _activeCutsceneDirector.duration;
-
         _activeCutsceneDirector.Evaluate();
-
-        // This triggers OnCutsceneFinished
         _activeCutsceneDirector.Stop();
 
-        ActivateObjects();
-
-        _activeSetUp.SetActive(false);
-    }
-
-    void OnCutsceneFinished(PlayableDirector director)
-    {
-        Debug.Log("CUTSCENE FINISHED");
-
+        // Restore actors
         foreach (CutsceneData cutscene in cutscenes)
         {
-            if (cutscene.director == director)
+            if (cutscene.director == _activeCutsceneDirector)
             {
-                // CUTSCENE RAT
                 if (cutscene.useCutsceneRat)
                 {
-                    Debug.Log("HIDING CUTSCENE RAT");
-
-                    // Hide cutscene rat
                     cutsceneRatActor.HideActor();
-
-                    // Show gameplay player
-                    player.SetActive(true);
                 }
 
-                // CUTSCENE CAT
+                // Always restore player/camera
+                player.SetActive(true);
+
                 if (cutscene.useCutsceneCat)
                 {
-                    Debug.Log("HIDING CUTSCENE CAT");
-
-                    // Hide cutscene cat
                     cutsceneCatActor.HideActor();
-
-                    // Show gameplay cat
-                    gameplayCat.SetActive(true);
+                    _gameManager.cat.SetActive(true);
                 }
 
                 break;
             }
         }
 
-        // Re-enable gameplay systems
+        ActivateObjects();
+        _activeSetUp.SetActive(false);
+
         playerMovement.enabled = true;
-
         _interaction.enabled = true;
-
         _gameManager.cutscenePlaying = false;
+    }
 
-        // Stop listening
+    void OnCutsceneFinished(PlayableDirector director)
+    {
+        // Stop listening first
         director.stopped -= OnCutsceneFinished;
 
-        // Reset timeline state
-        director.time = 0;
-
-        director.Evaluate();
-
+        // ActivateObjects BEFORE resetting timeline
+        // so position is set after timeline stops driving the object
         ActivateObjects();
 
         _activeSetUp.SetActive(false);
+
+        foreach (CutsceneData cutscene in cutscenes)
+        {
+            if (cutscene.director == director)
+            {
+                if (cutscene.useCutsceneRat)
+                {
+                    cutsceneRatActor.HideActor();
+                }
+
+                // Always restore player/camera
+                player.SetActive(true);
+
+                if (cutscene.useCutsceneCat)
+                {
+                    cutsceneCatActor.HideActor();
+                    _gameManager.cat.SetActive(true);
+                }
+
+                break;
+            }
+        }
+
+        playerMovement.enabled = true;
+        _interaction.enabled = true;
+        _gameManager.cutscenePlaying = false;
+
+        // Reset AFTER ActivateObjects so timeline doesn't overwrite the position
+        director.time = 0;
+        director.Evaluate();
     }
 
     public void ActivateObjects()
     {
         if (_activeSetUp.name == "CreditcardCutscene")
         {
+            // Remove cat from timeline bindings so it stops being driven
+            foreach (var output in cutscenes[1].director.playableAsset.outputs)
+            {
+                if (cutscenes[1].director.GetGenericBinding(output.sourceObject) == _gameManager.cat)
+                {
+                    cutscenes[1].director.ClearGenericBinding(output.sourceObject);
+                }
+            }
+
             _gameManager.cat.SetActive(true);
 
             _gameManager.catOnFloor = true;
@@ -198,6 +219,16 @@ public class CutsceneController : MonoBehaviour
         {
             _gameManager.lampBefore.SetActive(false);
 
+            _gameManager.lampAfter.SetActive(true);
+
+            _gameManager.cat.transform.position = _gameManager.catPowerCord.transform.position;
+            _gameManager.cat.transform.rotation = _gameManager.catPowerCord.transform.rotation;
+
+            gameCatAnimator.SetBool("Playing", true);
+
+            _gameManager.cat.SetActive(true);
+
+            _gameManager.lampBefore.SetActive(false);
             _gameManager.lampAfter.SetActive(true);
         }
     }

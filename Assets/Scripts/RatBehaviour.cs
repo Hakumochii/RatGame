@@ -130,6 +130,12 @@ public class RatBehaviour : MonoBehaviour
     //swinnging
      public bool isSwinging = false;
 
+     //Audio
+    private float _footstepTimer;
+    private bool _fallSoundPlayed = false;
+    [SerializeField] private float fallSoundMinHeight = 10f;
+    [SerializeField] private float fallSoundForwardCheck = 10f;
+
 
     private GameManager _gameManager;
 
@@ -294,6 +300,27 @@ public class RatBehaviour : MonoBehaviour
     {
         if (isSwinging) return; // KnockBack owns the animator entirely
 
+        if (climbing && move != Vector2.zero)
+        {
+            SoundManager.Instance.PlayContinuosly(SoundManager.Instance.ratClimbSFX);
+        }
+        else if (dragging && move.y != 0f)
+        {
+            SoundManager.Instance.PlayContinuosly(SoundManager.Instance.ratPushPullSFX);
+        }
+        else if (_animationBlend > 0.1f && Grounded)
+        {
+            SoundManager.Instance.PlayContinuosly(SoundManager.Instance.ratRunSFX);
+        }
+        else if (_fallSoundPlayed)
+        {
+            SoundManager.Instance.PlayContinuosly(SoundManager.Instance.ratFallingShortSFX);
+        }
+        else
+        {
+            SoundManager.Instance.StopContinuosly();
+        }
+
         // Locomotion blend (0 = idle, 1 = walk)
         _animator.SetFloat("Speed", _animationBlend);
 
@@ -301,21 +328,40 @@ public class RatBehaviour : MonoBehaviour
         _animator.SetBool("IsJumping", !Grounded && _verticalVelocity > 0f);
         _animator.SetBool("IsFalling", !Grounded && _verticalVelocity <= 0f);
 
-        bool isFallingPhysically = !Grounded && !climbing && !isHanging
-                                && _verticalVelocity <= 0f;
+        bool isFallingPhysically = !Grounded && !climbing && !isHanging;
 
         if (isFallingPhysically)
         {
             _fallAnimationTimer += Time.deltaTime;
+
+            if (!_fallSoundPlayed)
+            {
+                // Check below
+                RaycastHit groundBelow;
+                bool farFromGround = !Physics.Raycast(transform.position, Vector3.down, out groundBelow, fallSoundMinHeight);
+
+                // Check forward and down
+                RaycastHit groundAhead;
+                bool noGroundAhead = !Physics.Raycast(transform.position + transform.forward * fallSoundForwardCheck, Vector3.down, out groundAhead, fallSoundMinHeight);
+
+                if (farFromGround && noGroundAhead)
+                {
+                    _fallSoundPlayed = true;
+                }
+            }
         }
         else
         {
             _fallAnimationTimer = 0f;
             _fallAnimationActive = false;
+            _fallSoundPlayed = false;
         }
 
+
         if (_fallAnimationTimer >= fallAnimationDelay)
+        {
             _fallAnimationActive = true;
+        }
 
         _animator.SetBool("IsFreefall", _fallAnimationActive);
 
@@ -499,6 +545,7 @@ public class RatBehaviour : MonoBehaviour
             // Jump
             if (jump && _jumpTimeoutDelta <= 0.0f)
             {
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.ratJumpSFX);
                 // the square root of H * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
             }
@@ -628,6 +675,8 @@ public class RatBehaviour : MonoBehaviour
     {
         isSwinging = true;
         _animator.SetBool("IsFreefall", true);
+        SoundManager.Instance.PlayContinuosly(SoundManager.Instance.ratFallingShortSFX);
+        
         
         Vector3 startPos = transform.position;
         
@@ -651,6 +700,7 @@ public class RatBehaviour : MonoBehaviour
         }
         
         _animator.SetBool("IsFreefall", false);
+        SoundManager.Instance.StopContinuosly();
         transform.position = targetPos;
         isSwinging = false;
     }

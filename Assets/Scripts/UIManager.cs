@@ -11,6 +11,12 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator FadeOutObject(GameObject go)
     {
+        //wait for death cutscene to play
+        if (go.name == "CreditcardLostText")
+        {
+            yield return new WaitForSeconds(5f);
+        }
+
         go.SetActive(true);
 
         CanvasGroup canvasGroup = go.GetComponent<CanvasGroup>();

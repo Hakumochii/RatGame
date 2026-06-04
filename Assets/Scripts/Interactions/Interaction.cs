@@ -11,6 +11,7 @@ public class Interaction : MonoBehaviour
     private bool stoveStarted = false;
     private bool stoveOn = false;
     private bool booksFallen = false;
+    public bool cardSafe = false;
 
     [Header("Objects")]
     public GameObject stickyNote;
@@ -24,9 +25,12 @@ public class Interaction : MonoBehaviour
     public Material stoveMaterial;
     public UIManager uiManager;
 
+
     [Header("UI")]
     public GameObject noteText;
     public GameObject cardText;
+    public GameObject powerText;
+    public GameObject LostText;
 
 
     [Header("Stove timer")]
@@ -54,6 +58,11 @@ public class Interaction : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("CardSafe"))
+        {
+            cardSafe = true;
+        }
+
         if (other.CompareTag("CheckPoint"))
         {
             _gameManager.respawnArea = other.gameObject;
@@ -66,11 +75,6 @@ public class Interaction : MonoBehaviour
 
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
         {
-            if (_gameManager.currentLevel == 2)
-            {
-                _gameManager.hasCreditCard = false;
-                creditCard.SetActive(true);
-            }
             _gameManager.KillAndRespawn();
         }
 
@@ -108,9 +112,19 @@ public class Interaction : MonoBehaviour
 
         if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
         {
+            TurnOffStove();
             _gameManager.hasCreditCard = true;
             uiManager.ShowText(cardText);
             creditCard.SetActive(false);
+        }
+
+        if (other.CompareTag("Power") && _rat.interact == true)
+        {
+            _gameManager.hasPower = true;
+            uiManager.ShowText(powerText);
+            _computer.chargerOut.SetActive(false);
+            _computer.chargerIn.SetActive(true);
+
         }
 
         if (other.CompareTag("KnockOverBooks"))
@@ -230,6 +244,14 @@ public class Interaction : MonoBehaviour
         // Ensure we land exactly on the target alpha
         Color final = stoveMaterial.color;
         stoveMaterial.color = new Color(final.r, final.g, final.b, endA);
+    }
+
+    public void TurnOffStove()
+    {
+        stoveStarted = false;
+        stoveOn = false;
+        Color c = stoveMaterial.color;
+        stoveMaterial.color = new Color(c.r, c.g, c.b, 0f);
     }
 
     IEnumerator KillWater()

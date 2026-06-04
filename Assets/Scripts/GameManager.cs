@@ -10,7 +10,6 @@ public class GameManager : MonoBehaviour
 
     public bool hasPassword = false;
     public bool hasCreditCard = false;
-
     public bool hasPower = false;
 
     public bool usingComputer = false;
@@ -39,6 +38,7 @@ public class GameManager : MonoBehaviour
     public GameObject endPicture;
     public GameObject doorOpen;
     public GameObject doorClosed;
+    public GameObject startControls;
 
     [Header("Selfassigned")]
     public GameObject respawnArea;
@@ -97,6 +97,10 @@ public class GameManager : MonoBehaviour
         {
             PlayCutscene(intro);
         }
+        else
+        {
+            SoundManager.Instance.PlayMusic(SoundManager.Instance.catBurglarMusic);
+        }
         
    
     }
@@ -153,6 +157,9 @@ public class GameManager : MonoBehaviour
         _rat.enabled = true;
         _interaction.enabled = true;
         cutscenePlaying = false;
+
+        startControls.SetActive(true);
+        SoundManager.Instance.PlayMusic(SoundManager.Instance.catBurglarMusic);
     }
 
     public void DetermineAndPlayEnding()
@@ -167,6 +174,12 @@ public class GameManager : MonoBehaviour
 
     public void KillAndRespawn()
     {
+        if (currentLevel == 2 && !_interaction.cardSafe)
+        {
+            hasCreditCard = false;
+            _interaction.creditCard.SetActive(true);
+            FindFirstObjectByType<UIManager>().ShowText(_interaction.LostText);
+        }
         PlayCutscene(death);
         player.transform.position = respawnArea.transform.position;
     }
@@ -174,10 +187,8 @@ public class GameManager : MonoBehaviour
     public void KnockOverPlant()
     {
         _cutsceneController.PlayCutscene(3);
-        hasPower = true;
         cat.SetActive(false);
         catOnFloor = false;
-        player.transform.position = respawnArea.transform.position;
     }
 
 }
