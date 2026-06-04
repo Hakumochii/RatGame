@@ -14,6 +14,8 @@ public class CutsceneController : MonoBehaviour
         public bool useCutsceneRat;
 
         public bool useCutsceneCat;
+
+        public CutsceneActor cutsceneCat;
     }
 
     public CutsceneData[] cutscenes;
@@ -33,8 +35,6 @@ public class CutsceneController : MonoBehaviour
     [Header("Cutscene Actors")]
     public CutsceneActor cutsceneRatActor;
 
-    public CutsceneActor cutsceneCatActor;
-
     // These stay public because SkipCutscene.cs needs access
     public PlayableDirector _activeCutsceneDirector;
 
@@ -47,7 +47,13 @@ public class CutsceneController : MonoBehaviour
         // Hide cutscene actors at gameplay start
         cutsceneRatActor.HideActor();
 
-        cutsceneCatActor.HideActor();
+        foreach (CutsceneData cutscene in cutscenes)
+        {
+            if (cutscene.cutsceneCat != null)
+            {
+                cutscene.cutsceneCat.HideActor();
+            }
+        }
 
         _gameManager = FindFirstObjectByType<GameManager>();
     }
@@ -85,15 +91,13 @@ public class CutsceneController : MonoBehaviour
             }
 
             // CUTSCENE CAT
-            if (cutscene.useCutsceneCat)
+            if (cutscene.useCutsceneCat && cutscene.cutsceneCat != null)
             {
                 Debug.Log("SHOWING CUTSCENE CAT");
 
-                // Hide gameplay cat
                 _gameManager.cat.SetActive(false);
 
-                // Show cutscene cat
-                cutsceneCatActor.ShowActor();
+                cutscene.cutsceneCat.ShowActor();
             }
 
             // Store active references
@@ -133,9 +137,9 @@ public class CutsceneController : MonoBehaviour
                 // Always restore player/camera
                 player.SetActive(true);
 
-                if (cutscene.useCutsceneCat)
+                if (cutscene.useCutsceneCat && cutscene.cutsceneCat != null)
                 {
-                    cutsceneCatActor.HideActor();
+                    cutscene.cutsceneCat.HideActor();
                     _gameManager.cat.SetActive(true);
                 }
 
@@ -174,9 +178,9 @@ public class CutsceneController : MonoBehaviour
                 // Always restore player/camera
                 player.SetActive(true);
 
-                if (cutscene.useCutsceneCat)
+                if (cutscene.useCutsceneCat && cutscene.cutsceneCat != null)
                 {
-                    cutsceneCatActor.HideActor();
+                    cutscene.cutsceneCat.HideActor();
                     _gameManager.cat.SetActive(true);
                 }
 
