@@ -18,6 +18,7 @@ public class RatBehaviour : MonoBehaviour
     public bool climbing;
     public bool drag;
     public bool dragStopped;
+    public bool click;
     [SerializeField] private float MoveSpeed = 2.0f;
     [SerializeField] private float ClimbSpeed = 3.5f;
     [SerializeField] private float ClimbUpSpeed = 4.5f;
@@ -136,6 +137,37 @@ public class RatBehaviour : MonoBehaviour
     [SerializeField] private float fallSoundMinHeight = 10f;
     [SerializeField] private float fallSoundForwardCheck = 10f;
 
+    //controll
+    private bool _usingController;
+
+    void OnEnable()
+    {
+        InputSystem.onActionChange += OnActionChange;
+    }
+
+    void OnDisable()
+    {
+        InputSystem.onActionChange -= OnActionChange;
+    }
+
+    private void OnActionChange(object obj, InputActionChange change)
+    {
+        if (change == InputActionChange.ActionPerformed)
+        {
+            var action = obj as InputAction;
+            var device = action?.activeControl?.device;
+            if (device != null)
+            {
+                _usingController = device is Gamepad;
+            }
+        }
+    }
+
+    public bool IsUsingController()
+    {
+        return _usingController;
+    }
+
 
     private GameManager _gameManager;
 
@@ -188,6 +220,14 @@ public class RatBehaviour : MonoBehaviour
     public void OnClimb(InputAction.CallbackContext ctx)
     {
         climb = ctx.ReadValueAsButton();
+    }
+
+    public void OnClick(InputAction.CallbackContext ctx)
+    {
+        if (_gameManager.usingComputer) //click but only listen for it while in computer mode
+        {
+            click = ctx.ReadValueAsButton();
+        } 
     }
 
     public void OnDrag(InputAction.CallbackContext ctx)

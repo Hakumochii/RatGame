@@ -38,7 +38,6 @@ public class SoundManager : MonoBehaviour
     public AudioClip ratRunSFX;
     public AudioClip ratPushPullSFX;
     public AudioClip ratClimbSFX;
-    public AudioClip ratFallingLongSFX;
     public AudioClip ratFallingShortSFX;
     public AudioClip ratJumpSFX;
     public AudioClip ratLandingSFX;

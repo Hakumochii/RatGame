@@ -40,6 +40,10 @@ public class CutsceneController : MonoBehaviour
 
     public GameObject _activeSetUp;
 
+    [Header("Restore Camera")]
+    public CinemachineVirtualCamera playerVCam; // assign in Inspector
+
+
     void Start()
     {
         Debug.Log("CUTSCENE CONTROLLER START");
@@ -60,11 +64,14 @@ public class CutsceneController : MonoBehaviour
 
     public void PlayCutscene(int index)
     {
+
         Debug.Log("PLAY CUTSCENE CALLED");
+        SoundManager.Instance.StopContinuosly();
 
         if (index >= 0 && index < cutscenes.Length)
         {
             CutsceneData cutscene = cutscenes[index];
+
 
             // Disable gameplay systems
             playerMovement.enabled = false;
@@ -150,9 +157,13 @@ public class CutsceneController : MonoBehaviour
         ActivateObjects();
         _activeSetUp.SetActive(false);
 
+        _gameManager.usingComputer = false; 
+        RestoreCamera();
         playerMovement.enabled = true;
         _interaction.enabled = true;
         _gameManager.cutscenePlaying = false;
+        _activeCutsceneDirector.gameObject.SetActive(true);
+        _activeCutsceneDirector.gameObject.SetActive(false);
     }
 
     void OnCutsceneFinished(PlayableDirector director)
@@ -188,6 +199,8 @@ public class CutsceneController : MonoBehaviour
             }
         }
 
+        _gameManager.usingComputer = false; 
+        RestoreCamera();   
         playerMovement.enabled = true;
         _interaction.enabled = true;
         _gameManager.cutscenePlaying = false;
@@ -195,6 +208,8 @@ public class CutsceneController : MonoBehaviour
         // Reset AFTER ActivateObjects so timeline doesn't overwrite the position
         director.time = 0;
         director.Evaluate();
+        director.gameObject.SetActive(true);
+        director.gameObject.SetActive(false);
     }
 
     public void ActivateObjects()
@@ -221,10 +236,6 @@ public class CutsceneController : MonoBehaviour
 
         if (_activeSetUp.name == "ChargerCutscene")
         {
-            _gameManager.lampBefore.SetActive(false);
-
-            _gameManager.lampAfter.SetActive(true);
-
             _gameManager.cat.transform.position = _gameManager.catPowerCord.transform.position;
             _gameManager.cat.transform.rotation = _gameManager.catPowerCord.transform.rotation;
 
@@ -234,6 +245,26 @@ public class CutsceneController : MonoBehaviour
 
             _gameManager.lampBefore.SetActive(false);
             _gameManager.lampAfter.SetActive(true);
+        }
+
+        if (_activeSetUp.name == "PushingDaPlant")
+        {
+            _gameManager.cat.SetActive(false);
+    
+            _gameManager.plant.SetActive(false);
+
+            _gameManager.plantFallen.SetActive(true);
+
+        }
+    }
+
+    void RestoreCamera()
+    {
+        if (playerVCam != null)
+        {
+            playerVCam.enabled = false;
+            playerVCam.enabled = true;
+            playerVCam.Priority = 20; 
         }
     }
 }

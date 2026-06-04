@@ -5,34 +5,62 @@ using UnityEngine.InputSystem;
 public class SkipCutscene : MonoBehaviour
 {
     [SerializeField] private PlayerInput _playerInput;
-    public bool skip;
+    public bool quit;
     private GameManager _gameManager;
     private CutsceneController _cutsceneController;
+    private Computer _computer;
+    private float _quitCooldownTimer = 0f;
+
     void Awake()
     {
         _gameManager = FindFirstObjectByType<GameManager>();
         _playerInput = FindFirstObjectByType<PlayerInput>();
         _cutsceneController = FindFirstObjectByType<CutsceneController>();
+        _computer = FindFirstObjectByType<Computer>();
     }
 
-    public void OnSkip(InputAction.CallbackContext ctx)
+    public void OnQuit(InputAction.CallbackContext ctx)
     {
-        skip = ctx.ReadValueAsButton();
+        quit = ctx.ReadValueAsButton();
     }
+  
+    [SerializeField] private float quitCooldown = 2f;
+    
     private void Update()
     {
-        if (skip && _gameManager.cutscenePlaying)
+        if (_quitCooldownTimer > 0f)
         {
-            // Timeline cutscene takes priority check
-            if (_cutsceneController._activeCutsceneDirector != null && 
-                _cutsceneController._activeCutsceneDirector.state == PlayState.Playing)
+            _quitCooldownTimer -= Time.deltaTime;
+        }
+
+        if (quit && _quitCooldownTimer <= 0f)
+        {
+            if (_gameManager.cutscenePlaying)
             {
-                _cutsceneController.SkipTimelineCutscene();
+                quit = false;
+                _quitCooldownTimer = quitCooldown;
+
+                if (_cutsceneController._activeCutsceneDirector != null && 
+                    _cutsceneController._activeCutsceneDirector.state == PlayState.Playing)
+                {
+                    _cutsceneController.SkipTimelineCutscene();
+                }
+                else
+                {
+                    _gameManager.EndVideoCutscene();
+                }
             }
-            else
+            else if (_gameManager.usingComputer)
             {
-                _gameManager.EndVideoCutscene();
+                quit = false;
+                _quitCooldownTimer = quitCooldown;
+                _computer.CloseComputer();
             }
         }
+        else
+        {
+            quit = false;
+        }
     }
+    
 }

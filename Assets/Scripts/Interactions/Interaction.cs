@@ -48,12 +48,11 @@ public class Interaction : MonoBehaviour
 
     void Update()
     {
-        if(_rat.interact && nearComputer)
+        if(_rat.interact && nearComputer && !_gameManager.usingComputer && !_gameManager.cutscenePlaying)
         {
-            _computer.InteractWithComputer();
             _rat.interact = false;
+            _computer.InteractWithComputer();
         }
-        
     }
 
     void OnTriggerEnter(Collider other)
@@ -200,7 +199,6 @@ public class Interaction : MonoBehaviour
         yield return new WaitForSeconds(2f);
         booksFallen = true;
         yield return new WaitForSeconds(3f);
-        Debug.Log("freezing books");
         foreach (GameObject book in books)
         {
             book.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;

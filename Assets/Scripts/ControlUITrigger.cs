@@ -4,17 +4,20 @@ using TMPro;
 
 public class ControlUITrigger : MonoBehaviour
 {
-    [SerializeField] private GameObject messageText;
+    private GameObject messageText;
+    [SerializeField] private GameObject controllerText;
+    [SerializeField] private GameObject keyboardText;
     [SerializeField] private float displayTime = 5f;
     [SerializeField] private float fadeDuration = 1f;
 
     [SerializeField] private GameObject[] objectsToDestroy;
+    public GameManager _gameManager;
 
     private bool hasTriggered = false;
 
     private void Start()
     {
-        messageText.SetActive(false);
+        _gameManager = FindFirstObjectByType<GameManager>();
     }
 
     private void OnTriggerStay(Collider other)
@@ -24,9 +27,19 @@ public class ControlUITrigger : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
-            hasTriggered = true;
-            StartCoroutine(ShowText());
+            Check();
         }
+    }
+
+    private void Check()
+    {
+      // set it here instead of relying on Update
+        bool isController = _gameManager._rat.IsUsingController();
+        messageText = isController ? controllerText : keyboardText;
+
+        hasTriggered = true;
+        StartCoroutine(ShowText());
+         
     }
 
     /*

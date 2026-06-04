@@ -39,11 +39,13 @@ public class GameManager : MonoBehaviour
     public GameObject doorOpen;
     public GameObject doorClosed;
     public GameObject startControls;
+    public GameObject plant;
+    public GameObject plantFallen;
 
     [Header("Selfassigned")]
     public GameObject respawnArea;
     public Interaction _interaction;
-    private RatBehaviour _rat;
+    public RatBehaviour _rat;
     public CutsceneController _cutsceneController;
 
     // Singleton pattern because there should only be one and many scripts acess it
@@ -99,6 +101,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            startControls.SetActive(true);
             SoundManager.Instance.PlayMusic(SoundManager.Instance.catBurglarMusic);
         }
         
@@ -114,6 +117,7 @@ public class GameManager : MonoBehaviour
     // Game Manager Script
     IEnumerator Play(VideoClip cutscene)
     {
+        SoundManager.Instance.StopContinuosly();
         cutscenePlaying = true;
         _rat.enabled = false;
         _interaction.enabled = false;
@@ -151,14 +155,19 @@ public class GameManager : MonoBehaviour
         }
 
         cutscenePlayer.Stop();
-        cutscenePlayer.time = 0;        // rewind to start
-        cutscenePlayer.frame = 0;       // ensure frame is reset too
+        cutscenePlayer.time = 0;
+        cutscenePlayer.frame = 0;
         cutscenePlayer.clip = null;
         _rat.enabled = true;
         _interaction.enabled = true;
         cutscenePlaying = false;
 
-        startControls.SetActive(true);
+        // add null check
+        if (startControls != null)
+        {
+            startControls.SetActive(true);
+        }
+        
         SoundManager.Instance.PlayMusic(SoundManager.Instance.catBurglarMusic);
     }
 
@@ -174,7 +183,7 @@ public class GameManager : MonoBehaviour
 
     public void KillAndRespawn()
     {
-        if (currentLevel == 2 && !_interaction.cardSafe)
+        if (currentLevel == 2 && !_interaction.cardSafe && hasCreditCard)
         {
             hasCreditCard = false;
             _interaction.creditCard.SetActive(true);
