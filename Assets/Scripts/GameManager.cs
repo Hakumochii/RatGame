@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Video;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,10 +24,13 @@ public class GameManager : MonoBehaviour
     public bool cutscenePlaying;
     private Coroutine _currentCutscene;
 
+    private bool lastCutscene = false;
+
     [Header("Cutscenes")]
     public bool dontPlayFirstCutscene;
     public VideoClip intro;
-    public VideoClip death;
+    public VideoClip catDeath;
+    public VideoClip drownDeath;
     public VideoClip ending1;
 
     [Header("Objects")]
@@ -35,7 +39,6 @@ public class GameManager : MonoBehaviour
     public GameObject player;
     public GameObject cat;
     public GameObject catPowerCord;
-    public GameObject endPicture;
     public GameObject doorOpen;
     public GameObject doorClosed;
     public GameObject startControls;
@@ -47,48 +50,12 @@ public class GameManager : MonoBehaviour
     public Interaction _interaction;
     public RatBehaviour _rat;
     public CutsceneController _cutsceneController;
-
-    // Singleton pattern because there should only be one and many scripts acess it
-    private static GameManager instance;
-    public static GameManager Instance
-    {
-        // Ensure there is always an instance of the sound manager
-        get
-        {
-            // Check if the instance is null or has been destroyed
-            if (instance == null || instance.gameObject == null)
-            {
-                // Find an existing instance in the scene
-                instance = FindFirstObjectByType<GameManager>();
-
-                // If no instance exists, create a new one
-                if (instance == null)
-                {
-                    GameObject obj = new GameObject(nameof(GameManager));
-                    instance = obj.AddComponent<GameManager>();
-                }
-            }
-            return instance;
-        }
-    }
-
     
     private void Awake()
     {
-        // Ensure the instance isn't destroyed when loading new scenes
-        if (instance == null || instance.gameObject == null)
-        {
-            instance = this;
-        }
-        else if (instance != this)
-        {
-            // If another instance exists, destroy this one
-            Destroy(gameObject);
-            return;
-        }
-
-        DontDestroyOnLoad(this.gameObject);
-
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        
         //find scripts
         _rat = FindFirstObjectByType<RatBehaviour>();
         _interaction = FindFirstObjectByType<Interaction>();
@@ -134,7 +101,15 @@ public class GameManager : MonoBehaviour
         // Wait until the video actually finishes playing
         yield return new WaitUntil(() => !cutscenePlayer.isPlaying);
 
-        EndVideoCutscene();
+        if (lastCutscene)
+        {
+            PlayCredits();
+        }
+        else
+        {
+            EndVideoCutscene();
+        }
+
     }
 
     // Make sure you're storing the coroutine reference when starting it
@@ -171,17 +146,13 @@ public class GameManager : MonoBehaviour
         SoundManager.Instance.PlayMusic(SoundManager.Instance.catBurglarMusic);
     }
 
-    public void DetermineAndPlayEnding()
+    public void DetermineAndPlayEnding()//would be here to chcek is multiple endings
     {
-        _rat.enabled = false;
-        _interaction.enabled = false;
-        endPicture.SetActive(true);
-        //defalut ending
-        //PlayCutscene(ending1);
-        //different conditions for different endings
+        lastCutscene = true;
+        PlayCutscene(ending1);
     }
 
-    public void KillAndRespawn()
+    public void KillAndRespawn(VideoClip death)
     {
         if (currentLevel == 2 && !_interaction.cardSafe && hasCreditCard)
         {
@@ -199,5 +170,12 @@ public class GameManager : MonoBehaviour
         cat.SetActive(false);
         catOnFloor = false;
     }
+
+    void PlayCredits()
+    {
+        //play credits and reset game
+        SceneManager.LoadScene(0);
+    }
+
 
 }

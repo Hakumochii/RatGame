@@ -249,7 +249,7 @@ public class CutsceneController : MonoBehaviour
 
         if (_activeSetUp.name == "PushingDaPlant")
         {
-            _gameManager.cat.SetActive(false);
+            Destroy(_gameManager.cat);
     
             _gameManager.plant.SetActive(false);
 

@@ -533,7 +533,7 @@ public class RatBehaviour : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(-wallNormal);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
-        else if (dragging && box != null)
+        else if (dragging && box != null && Grounded)
         {
             float forwardAmount = move.y;
 
@@ -571,7 +571,7 @@ public class RatBehaviour : MonoBehaviour
 
     private void JumpAndGravity()
     {
-        if (Grounded)
+        if (Grounded && !dragging)
         {
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;

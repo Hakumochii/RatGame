@@ -74,7 +74,7 @@ public class Interaction : MonoBehaviour
 
         if (other.CompareTag("Floor") && _gameManager.catOnFloor)
         {
-            _gameManager.KillAndRespawn();
+            _gameManager.KillAndRespawn(_gameManager.catDeath);
         }
 
         if (other.CompareTag("Plant") && _gameManager.currentLevel == 3)
@@ -254,8 +254,8 @@ public class Interaction : MonoBehaviour
 
     IEnumerator KillWater()
     {
-        yield return new WaitForSeconds(0.5f);
-        _gameManager.KillAndRespawn();
+        yield return new WaitForSeconds(0.3f);
+        _gameManager.KillAndRespawn(_gameManager.drownDeath);
     }
     
 }
