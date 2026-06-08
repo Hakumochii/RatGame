@@ -14,6 +14,7 @@ public class ControlUITrigger : MonoBehaviour
     public GameManager _gameManager;
 
     private bool hasTriggered = false;
+    private GameObject controlButton;
 
     private void Start()
     {
@@ -36,6 +37,14 @@ public class ControlUITrigger : MonoBehaviour
       // set it here instead of relying on Update
         bool isController = _gameManager._rat.IsUsingController();
         messageText = isController ? controllerText : keyboardText;
+        controlButton = isController ? _gameManager.controlsButtonCons : _gameManager.controlsButtonKey;
+
+        if (!_gameManager.seeControls)
+        {
+            _gameManager.seeControls = true;
+            controlButton.SetActive(true);
+        }
+        
 
         hasTriggered = true;
         StartCoroutine(ShowText());

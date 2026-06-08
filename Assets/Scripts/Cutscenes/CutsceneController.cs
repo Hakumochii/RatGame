@@ -239,9 +239,8 @@ public class CutsceneController : MonoBehaviour
             _gameManager.cat.transform.position = _gameManager.catPowerCord.transform.position;
             _gameManager.cat.transform.rotation = _gameManager.catPowerCord.transform.rotation;
 
-            gameCatAnimator.SetBool("Playing", true);
-
             _gameManager.cat.SetActive(true);
+            gameCatAnimator.SetBool("Playing", true);
 
             _gameManager.lampBefore.SetActive(false);
             _gameManager.lampAfter.SetActive(true);

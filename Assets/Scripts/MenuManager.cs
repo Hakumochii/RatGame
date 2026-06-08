@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    public GameObject settings;
+    public GameObject controls;
 
     void Start()
     {
@@ -11,19 +11,19 @@ public class MenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
-    public void ChangeToScene2()
+    public void ChangeToScene(int num)
     {
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene(num);
     }
 
-    public void OpenSettings()
+    public void OpenControls()
     {
-        settings.SetActive(true);
+        controls.SetActive(true);
     }
 
-    public void CloseSettings()
+    public void CloseControls()
     {
-        settings.SetActive(false);
+        controls.SetActive(false);
     }
 
     public void QuitApplication()

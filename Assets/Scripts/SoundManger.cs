@@ -42,6 +42,7 @@ public class SoundManager : MonoBehaviour
     public AudioClip ratJumpSFX;
     public AudioClip ratLandingSFX;
     public AudioClip ratBurnedSFX;
+    public AudioClip itemSFX;
 
     private void Awake()
     {

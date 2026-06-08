@@ -748,6 +748,7 @@ public class RatBehaviour : MonoBehaviour
 
     public IEnumerator KnockBack(float duration = 1.5f)
     {
+        SoundManager.Instance.PlaySFX(SoundManager.Instance.ratBurnedSFX);
         isSwinging = true;
 
         // Direction AWAY from where the character is facing, in local space

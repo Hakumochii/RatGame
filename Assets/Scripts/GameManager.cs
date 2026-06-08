@@ -26,6 +26,10 @@ public class GameManager : MonoBehaviour
 
     private bool lastCutscene = false;
 
+    private bool _videoFinishedNaturally = false;
+    
+    public bool seeControls = false;
+
     [Header("Cutscenes")]
     public bool dontPlayFirstCutscene;
     public VideoClip intro;
@@ -44,6 +48,9 @@ public class GameManager : MonoBehaviour
     public GameObject startControls;
     public GameObject plant;
     public GameObject plantFallen;
+    public GameObject blackPanel;
+    public GameObject controlsButtonKey;
+    public GameObject controlsButtonCons;
 
     [Header("Selfassigned")]
     public GameObject respawnArea;
@@ -51,7 +58,7 @@ public class GameManager : MonoBehaviour
     public RatBehaviour _rat;
     public CutsceneController _cutsceneController;
     
-    private void Awake()
+    private void Start()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -84,6 +91,9 @@ public class GameManager : MonoBehaviour
     // Game Manager Script
     IEnumerator Play(VideoClip cutscene)
     {
+        
+        _videoFinishedNaturally = false;
+        cutscenePlayer.loopPointReached += _ => _videoFinishedNaturally = true;
         SoundManager.Instance.StopContinuosly();
         cutscenePlaying = true;
         _rat.enabled = false;
@@ -93,13 +103,15 @@ public class GameManager : MonoBehaviour
         cutscenePlayer.time = 0;
 
         // Prepare the video first, then wait until it's ready
+        blackPanel.SetActive(true);
         cutscenePlayer.Prepare();
         yield return new WaitUntil(() => cutscenePlayer.isPrepared);
-
+        SoundManager.Instance.StopMusic();
         cutscenePlayer.Play();
-
+        blackPanel.SetActive(false); // hide once video is actually running
+        
         // Wait until the video actually finishes playing
-        yield return new WaitUntil(() => !cutscenePlayer.isPlaying);
+        yield return new WaitUntil(() => _videoFinishedNaturally);
 
         if (lastCutscene)
         {
@@ -123,6 +135,8 @@ public class GameManager : MonoBehaviour
 
     public void EndVideoCutscene()
     {
+        if (lastCutscene) return;
+
         if (_currentCutscene != null)
         {
             StopCoroutine(_currentCutscene);
@@ -173,8 +187,7 @@ public class GameManager : MonoBehaviour
 
     void PlayCredits()
     {
-        //play credits and reset game
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(2);
     }
 
 

@@ -104,6 +104,7 @@ public class Interaction : MonoBehaviour
     {
         if (other.CompareTag("Password") && _rat.interact == true)
         {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.itemSFX); 
             _gameManager.hasPassword = true;
             uiManager.ShowText(noteText);
             stickyNote.SetActive(false);
@@ -111,6 +112,7 @@ public class Interaction : MonoBehaviour
 
         if (other.CompareTag("Card") && _gameManager.currentLevel > 1 && _rat.interact == true)
         {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.itemSFX);   
             TurnOffStove();
             _gameManager.hasCreditCard = true;
             uiManager.ShowText(cardText);

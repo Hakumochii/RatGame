@@ -166,6 +166,12 @@ public class Computer : MonoBehaviour
         if (!_gameManager.usingComputer)
         {
             SoundManager.Instance.StopContinuosly();
+            //last interaction
+            if (_gameManager.currentLevel == 3 && _gameManager.hasPower)
+            {
+                _gameManager.DetermineAndPlayEnding();
+            }
+
             // Skift til computer kamera
             playerCameraObj.SetActive(false);
             computerCameraObj.SetActive(true);
@@ -187,12 +193,6 @@ public class Computer : MonoBehaviour
                 {
                     _gameManager.ChangeLevel();
                 }
-            }
-            
-            //last interaction
-            if (_gameManager.currentLevel == 3 && _gameManager.hasPower)
-            {
-                _gameManager.DetermineAndPlayEnding();
             }
 
             mouseCursor.SetActive(true);

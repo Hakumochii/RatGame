@@ -81,6 +81,7 @@ public class Outline : MonoBehaviour {
   private bool needsUpdate;
 
   void Awake() {
+    registeredMeshes.Clear();
 
     // Cache renderers
     renderers = GetComponentsInChildren<Renderer>();
